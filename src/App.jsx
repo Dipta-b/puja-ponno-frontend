@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import CustomCursor from './components/ui/CustomCursor';
 import Navbar from './components/layout/Navbar';
 import Footer from './components/layout/Footer';
@@ -7,7 +7,9 @@ import Cart from './pages/Cart';
 import Checkout from './pages/Checkout';
 import RegisterForm from './pages/RegisterForm';
 import LoginForm from './pages/LoginForm';
-
+import AdminRoute from './secureRoutes/AdminRoute';
+import AdminDashboard from './components/dashboard/AdminDashboard';
+import AddProduct from './pages/AddProduct';
 function App() {
   return (
     <Router>
@@ -22,6 +24,24 @@ function App() {
             <Route path="/checkout" element={<Checkout />} />
             <Route path='/register' element={<RegisterForm />} />
             <Route path='/login' element={<LoginForm />} />
+            <Route path='/dashboard' element={<Navigate to="/admin" replace />} />
+
+            <Route
+              path="/admin"
+              element={
+                <AdminRoute>
+                  <AdminDashboard />
+                </AdminRoute>
+              }
+            />
+            <Route
+              path="/admin/add-product"
+              element={
+                <AdminRoute>
+                  <AddProduct />
+                </AdminRoute>
+              }
+            />
           </Routes>
         </main>
 

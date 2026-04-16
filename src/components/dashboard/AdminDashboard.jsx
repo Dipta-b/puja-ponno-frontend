@@ -30,7 +30,7 @@ const AdminDashboard = () => {
 
     useEffect(() => {
         if (activeTab === 'products') fetchProducts();
-        if (activeTab === 'users' || activeTab === 'admins') fetchUsers();
+        if (activeTab === 'roles') fetchUsers();
         if (activeTab === 'categories') fetchCategories();
     }, [activeTab]);
 
@@ -44,7 +44,7 @@ const AdminDashboard = () => {
 
     const fetchUsers = async () => {
         try {
-            const res = await fetch(`${API}/api/auth`, { credentials: 'include' });
+            const res = await fetch(`${API}/api/auth/users`, { credentials: 'include' });
             const data = await res.json();
             setUsers(Array.isArray(data) ? data : []);
         } catch (err) { }
@@ -92,10 +92,15 @@ const AdminDashboard = () => {
                 credentials: 'include',
                 body: JSON.stringify({ role: newRole, status: newStatus })
             });
+            const data = await res.json();
             if (res.ok) {
                 setUsers(users.map(u => u._id === id ? { ...u, role: newRole, status: newStatus } : u));
+            } else {
+                alert(`Error: ${data.message || 'Update failed'}`);
             }
-        } catch (err) { }
+        } catch (err) {
+            alert('Failed to connect to server: ' + err.message);
+        }
     };
     
     // --- Category Handlers ---

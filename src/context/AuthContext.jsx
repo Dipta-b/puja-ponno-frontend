@@ -32,9 +32,17 @@ export default function AuthProvider({ children }) {
         fetchCurrentUser();
     }, []);
 
+    if (loading) {
+        return (
+            <div className="min-h-screen flex items-center justify-center bg-[#f6f1e7]">
+                <div className="w-16 h-16 border-4 border-orange-500 border-t-transparent rounded-full animate-spin"></div>
+            </div>
+        );
+    }
+
     return (
         <AuthContext.Provider value={{ user, setUser, loading }}>
-            {!loading && children}
+            {children}
         </AuthContext.Provider>
     );
 }

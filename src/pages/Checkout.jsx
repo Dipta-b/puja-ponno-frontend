@@ -34,7 +34,7 @@ export default function Checkout() {
               
               <div className="pt-2">
                 <label className="font-bengali text-gray-700 block mb-2 font-medium">ডেলিভারি এরিয়া</label>
-                <div className="flex gap-4">
+                <div className="flex flex-col sm:flex-row gap-4">
                   <label className={`flex-1 p-3 rounded-xl border flex items-center gap-2 cursor-none transition-colors ${deliveryArea === 'inside' ? 'border-sindoor-red bg-sindoor-red/5' : 'border-gray-200 bg-white/50'}`}>
                     <input type="radio" name="area" checked={deliveryArea === 'inside'} onChange={() => setDeliveryArea('inside')} className="hidden" />
                     <div className={`w-4 h-4 rounded-full border flex items-center justify-center ${deliveryArea === 'inside' ? 'border-sindoor-red' : 'border-gray-400'}`}>

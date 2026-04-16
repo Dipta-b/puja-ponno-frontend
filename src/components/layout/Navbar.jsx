@@ -130,6 +130,17 @@ export default function Navbar() {
                   </a>
                 ))}
 
+                {user?.role === "admin" && (
+                  <Link
+                    to="/admin"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className="flex items-center gap-3 text-red-600 text-lg"
+                  >
+                    <UserCircle size={24} />
+                    <span>ড্যাশবোর্ড</span>
+                  </Link>
+                )}
+
                 {user ? (
                   <button
                     onClick={handleLogout}

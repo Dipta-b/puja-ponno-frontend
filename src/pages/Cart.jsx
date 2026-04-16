@@ -49,28 +49,33 @@ export default function Cart() {
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: index * 0.1 }}
-                  className="bg-white/70 backdrop-blur-md p-4 rounded-2xl border border-soft-gold/30 shadow-sm flex items-center gap-4 cursor-none relative"
+                  className="bg-white/70 backdrop-blur-md p-4 rounded-2xl border border-soft-gold/30 shadow-sm flex flex-col sm:flex-row sm:items-center gap-4 relative"
                 >
-                  <img src={item.images[0]} alt={item.title} className="w-24 h-24 object-cover rounded-xl border border-gray-100" />
-                  
-                  <div className="flex-grow">
-                    <h3 className="font-heading text-xl text-gray-800">{item.title}</h3>
-                    <p className="font-bengali text-sindoor-red font-bold text-lg">৳{item.price}</p>
+                  <div className="flex items-center gap-4 w-full sm:w-auto">
+                    <img src={item.images[0]} alt={item.title} className="w-20 h-20 sm:w-24 sm:h-24 object-cover rounded-xl border border-gray-100" />
+                    <div className="flex-grow sm:flex-grow-0">
+                      <h3 className="font-heading text-lg sm:text-xl text-gray-800">{item.title}</h3>
+                      <p className="font-bengali text-sindoor-red font-bold text-lg">৳{item.price}</p>
+                    </div>
                   </div>
 
-                  <div className="flex items-center gap-3 bg-matte-sandal rounded-full px-3 py-1 border border-gray-200">
-                    <button onClick={() => updateQuantity(item._id, -1)} className="text-gray-500 hover:text-sindoor-red transition-colors">
-                      <Minus size={16} />
-                    </button>
-                    <span className="font-bengali font-bold w-6 text-center">{item.quantity}</span>
-                    <button onClick={() => updateQuantity(item._id, 1)} className="text-gray-500 hover:text-green-600 transition-colors">
-                      <Plus size={16} />
+                  <div className="flex-grow hidden sm:block"></div>
+
+                  <div className="flex items-center justify-between w-full sm:w-auto mt-2 sm:mt-0">
+                    <div className="flex items-center gap-3 bg-matte-sandal rounded-full px-3 py-1.5 sm:py-1 border border-gray-200">
+                      <button onClick={() => updateQuantity(item._id, -1)} className="text-gray-500 hover:text-sindoor-red transition-colors p-1">
+                        <Minus size={16} />
+                      </button>
+                      <span className="font-bengali font-bold w-6 text-center">{item.quantity}</span>
+                      <button onClick={() => updateQuantity(item._id, 1)} className="text-gray-500 hover:text-green-600 transition-colors p-1">
+                        <Plus size={16} />
+                      </button>
+                    </div>
+
+                    <button onClick={() => removeItem(item._id)} className="p-2 text-gray-400 hover:text-sindoor-red transition-colors sm:absolute sm:top-auto sm:right-4 bg-gray-50 sm:bg-transparent rounded-full sm:rounded-none">
+                      <Trash2 size={20} />
                     </button>
                   </div>
-
-                  <button onClick={() => removeItem(item._id)} className="p-2 text-gray-400 hover:text-sindoor-red transition-colors absolute top-4 right-4 lg:relative lg:top-auto lg:right-auto">
-                    <Trash2 size={20} />
-                  </button>
                 </motion.div>
               ))}
             </div>

@@ -22,7 +22,7 @@ const AddProduct = () => {
 
     const API = "http://localhost:5000";
 
-    // 🔥 Load categories dynamically
+    // Load categories
     useEffect(() => {
         fetch(`${API}/categories`)
             .then((res) => res.json())
@@ -33,7 +33,7 @@ const AddProduct = () => {
             });
     }, []);
 
-    // 🔥 Image upload (ImageBB)
+    // Image upload
     const handleFileUpload = async (e) => {
         const file = e.target.files[0];
         if (!file) return;
@@ -61,7 +61,7 @@ const AddProduct = () => {
         }
     };
 
-    // 🔥 URL preview
+    // URL preview
     const handleUrlPreview = () => {
         const url = watch("imageUrl");
         if (!url) return;
@@ -70,28 +70,37 @@ const AddProduct = () => {
         setPreview(url);
     };
 
-    // 🔥 Add item field
     const addItem = () => {
         setItems([...items, { name: "", quantity: "" }]);
     };
 
-    // 🔥 Remove item
     const removeItem = (index) => {
         const newItems = items.filter((_, i) => i !== index);
         setItems(newItems);
     };
 
-    // 🔥 Submit
+    // 🔥 FIXED SUBMIT
     const onSubmit = async (data) => {
         try {
             const selectedCategory = categories.find(
                 (c) => c.name === data.category
             );
 
+            // 🔥 CLEAN ITEMS (IMPORTANT FIX)
+            const cleanItems = items.filter(
+                (i) => i.name.trim() !== "" && i.quantity.trim() !== ""
+            );
+
             const productData = {
                 ...data,
-                categorySlug: selectedCategory?.slug,
-                itemsIncluded: items,
+
+                // FIX: ensure thumbnail always exists
+                thumbnail: data.thumbnail || preview || "",
+
+                categorySlug: selectedCategory?.slug || "",
+
+                itemsIncluded: cleanItems,
+
                 createdAt: new Date(),
             };
 
@@ -104,32 +113,40 @@ const AddProduct = () => {
                 body: JSON.stringify(productData),
             });
 
-            if (!res.ok) throw new Error("Failed to add product");
+            if (!res.ok) {
+                const err = await res.json();
+                throw new Error(err.message || "Failed");
+            }
 
             setMessage("✅ Product added successfully!");
+
+            // reset (optional but good)
+            setItems([{ name: "", quantity: "" }]);
+            setPreview("");
+
         } catch (err) {
-            setMessage("❌ Error adding product");
+            setMessage("❌ " + err.message);
         }
     };
 
     return (
-        <div className="max-w-3xl mx-auto mt-10 p-6 bg-white shadow-lg rounded-lg">
+        <div className="max-w-3xl mx-4 sm:mx-auto mt-20 sm:mt-10 mb-10 p-4 sm:p-6 bg-white shadow-lg rounded-lg">
             <h2 className="text-2xl font-bold mb-6 text-center">Add Product</h2>
 
             {message && <p className="text-center mb-4">{message}</p>}
 
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
 
-                {/* Name */}
                 <input
                     {...register("name", { required: true })}
                     placeholder="Product Name"
                     className="w-full p-2 border rounded"
                 />
 
-                {/* Category */}
-                <select {...register("category", { required: true })}
-                    className="w-full p-2 border rounded">
+                <select
+                    {...register("category", { required: true })}
+                    className="w-full p-2 border rounded"
+                >
                     <option value="">Select Category</option>
                     {categories.map((cat) => (
                         <option key={cat._id} value={cat.name}>
@@ -138,7 +155,6 @@ const AddProduct = () => {
                     ))}
                 </select>
 
-                {/* Price */}
                 <input
                     type="number"
                     {...register("price")}
@@ -146,7 +162,6 @@ const AddProduct = () => {
                     className="w-full p-2 border rounded"
                 />
 
-                {/* Discount */}
                 <input
                     type="number"
                     {...register("discountPrice")}
@@ -154,7 +169,6 @@ const AddProduct = () => {
                     className="w-full p-2 border rounded"
                 />
 
-                {/* Stock */}
                 <input
                     type="number"
                     {...register("stock")}
@@ -162,7 +176,6 @@ const AddProduct = () => {
                     className="w-full p-2 border rounded"
                 />
 
-                {/* Image URL */}
                 <input
                     {...register("imageUrl")}
                     placeholder="Paste image URL"
@@ -179,16 +192,15 @@ const AddProduct = () => {
 
                 <p className="text-center text-gray-400">OR</p>
 
-                {/* Upload */}
                 <input type="file" onChange={handleFileUpload} />
 
                 {uploading && <p>Uploading...</p>}
 
                 {preview && <img src={preview} className="w-32 mt-2" />}
 
-                {/* Items Included */}
                 <div>
                     <h3 className="font-semibold">Items Included</h3>
+
                     {items.map((item, index) => (
                         <div key={index} className="flex gap-2 mt-2">
                             <input
@@ -218,12 +230,16 @@ const AddProduct = () => {
                             </button>
                         </div>
                     ))}
-                    <button type="button" onClick={addItem} className="mt-2 text-blue-500">
+
+                    <button
+                        type="button"
+                        onClick={addItem}
+                        className="mt-2 text-blue-500"
+                    >
                         + Add Item
                     </button>
                 </div>
 
-                {/* Flags */}
                 <label className="flex gap-2">
                     <input type="checkbox" {...register("isFeatured")} />
                     Featured
@@ -234,21 +250,18 @@ const AddProduct = () => {
                     Best Seller
                 </label>
 
-                {/* Description */}
                 <textarea
                     {...register("description")}
                     placeholder="Description"
                     className="w-full p-2 border rounded"
                 />
 
-                {/* Purity Note */}
                 <input
                     {...register("purityNote")}
                     placeholder="Purity Note"
                     className="w-full p-2 border rounded"
                 />
 
-                {/* Submit */}
                 <button className="w-full bg-blue-600 text-white py-2 rounded">
                     Add Product
                 </button>

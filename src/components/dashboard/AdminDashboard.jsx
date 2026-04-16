@@ -11,7 +11,7 @@ const API = 'http://localhost:5000';
 
 const AdminDashboard = () => {
     const [activeTab, setActiveTab] = useState('products');
-    const [sidebarOpen, setSidebarOpen] = useState(true);
+    const [sidebarOpen, setSidebarOpen] = useState(false); // Closed by default on mobile
     
     // Data states
     const [products, setProducts] = useState([]);
@@ -361,13 +361,25 @@ const AdminDashboard = () => {
     );
 
     return (
-        <div className="min-h-screen bg-gray-50 flex mt-20">
+        <div className="min-h-screen bg-gray-50 flex mt-20 relative">
+            
+            {/* MOBILE OVERLAY */}
+            {sidebarOpen && (
+                <div 
+                    className="md:hidden fixed inset-0 z-10 bg-black/20 backdrop-blur-sm top-20"
+                    onClick={() => setSidebarOpen(false)}
+                />
+            )}
+
             {/* SIDEBAR */}
-            <aside className={`${sidebarOpen ? 'w-64' : 'w-20'} bg-white border-r border-gray-200 transition-all duration-300 fixed bottom-0 top-20 z-10 flex flex-col`}>
+            <aside className={`${sidebarOpen ? 'translate-x-0 w-64' : '-translate-x-full md:translate-x-0 md:w-20'} bg-white border-r border-gray-200 transition-all duration-300 fixed bottom-0 top-20 z-20 flex flex-col shadow-2xl md:shadow-none`}>
                 <div className="p-4 border-b border-gray-100 flex items-center justify-between">
                     {sidebarOpen && <span className="font-bold tracking-wider text-sm text-gray-500 uppercase">Menu</span>}
-                    <button onClick={() => setSidebarOpen(!sidebarOpen)} className="p-2 text-gray-400 hover:bg-gray-100 rounded-lg mx-auto md:mx-0">
+                    <button onClick={() => setSidebarOpen(!sidebarOpen)} className="hidden md:block p-2 text-gray-400 hover:bg-gray-100 rounded-lg mx-auto md:mx-0">
                         <Menu className="w-5 h-5" />
+                    </button>
+                    <button onClick={() => setSidebarOpen(false)} className="md:hidden p-2 text-gray-400 hover:bg-gray-100 rounded-lg">
+                        <X className="w-5 h-5" />
                     </button>
                 </div>
                 
@@ -397,9 +409,18 @@ const AdminDashboard = () => {
             </aside>
 
             {/* MAIN CONTENT */}
-            <main className={`flex-1 transition-all duration-300 ${sidebarOpen ? 'ml-64' : 'ml-20'} p-6 md:p-8 relative`}>
-                <div className="max-w-6xl mx-auto">
-                    <div className="mb-8">
+            <main className={`flex-1 transition-all duration-300 ${sidebarOpen ? 'md:ml-64' : 'md:ml-20'} ml-0 p-4 sm:p-6 md:p-8 relative min-w-0`}>
+                <div className="max-w-6xl mx-auto w-full">
+                    
+                    {/* MOBILE TOP BAR */}
+                    <div className="md:hidden mb-6 flex justify-between items-center bg-white p-4 rounded-xl shadow-sm border border-gray-100">
+                        <h1 className="text-xl font-bold text-gray-800 capitalize">{activeTab.replace('-', ' ')} manager</h1>
+                        <button onClick={() => setSidebarOpen(true)} className="p-2 bg-gray-50 text-gray-600 rounded-lg border border-gray-200 hover:bg-gray-100 transition">
+                            <Menu className="w-5 h-5" />
+                        </button>
+                    </div>
+
+                    <div className="hidden md:block mb-8">
                         <h1 className="text-2xl font-bold text-gray-800 capitalize">{activeTab.replace('-', ' ')} manager</h1>
                         <p className="text-gray-500 text-sm mt-1">Manage your eCommerce store's {activeTab}</p>
                     </div>

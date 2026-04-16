@@ -130,7 +130,7 @@ const AddProduct = () => {
     };
 
     return (
-        <div className="max-w-3xl mx-4 sm:mx-auto mt-20 sm:mt-10 mb-10 p-4 sm:p-6 bg-white shadow-lg rounded-lg">
+        <div className="max-w-3xl mx-4 sm:mx-auto mt-28 sm:mt-32 mb-10 p-4 sm:p-6 bg-white shadow-lg rounded-lg">
             <h2 className="text-2xl font-bold mb-6 text-center">Add Product</h2>
 
             {message && <p className="text-center mb-4">{message}</p>}

@@ -6,6 +6,7 @@ import { AuthContext } from "../../context/AuthContext";
 
 export default function Navbar() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [showConfirmLogout, setShowConfirmLogout] = useState(false);
   const [showLogoutModal, setShowLogoutModal] = useState(false);
 
   const navigate = useNavigate();
@@ -13,8 +14,7 @@ export default function Navbar() {
 
   const navLinks = ["পূজার সামগ্রী", "প্যাকেজ", "শুদ্ধতার গল্প"];
 
-
-  const handleLogout = async () => {
+  const confirmLogout = async () => {
     try {
       const res = await fetch("http://localhost:5000/api/auth/logout", {
         method: "POST",
@@ -26,6 +26,7 @@ export default function Navbar() {
       if (res.ok) {
         setUser(null);
         setIsMobileMenuOpen(false);
+        setShowConfirmLogout(false);
         setShowLogoutModal(true);
       } else {
         console.log(data.message);
@@ -33,6 +34,11 @@ export default function Navbar() {
     } catch (error) {
       console.error("Logout failed:", error);
     }
+  };
+
+  const handleLogoutClick = () => {
+    setIsMobileMenuOpen(false);
+    setShowConfirmLogout(true);
   };
 
   return (
@@ -74,7 +80,7 @@ export default function Navbar() {
           <div className="flex items-center space-x-4">
             {user ? (
               <button
-                onClick={handleLogout}
+                onClick={handleLogoutClick}
                 className="hidden md:flex items-center gap-2 text-gray-700 hover:text-red-600"
               >
                 <UserCircle size={20} />
@@ -105,7 +111,6 @@ export default function Navbar() {
                 ড্যাশবোর্ড
               </Link>
             )}
-
           </div>
         </div>
 
@@ -143,7 +148,7 @@ export default function Navbar() {
 
                 {user ? (
                   <button
-                    onClick={handleLogout}
+                    onClick={handleLogoutClick}
                     className="flex items-center gap-3 text-red-600 text-lg"
                   >
                     <UserCircle size={24} />
@@ -165,10 +170,53 @@ export default function Navbar() {
         </AnimatePresence>
       </div>
 
-      {/* LOGOUT MODAL */}
+      {/* CONFIRM LOGOUT MODAL */}
+      {showConfirmLogout && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[999]">
+          <div className="bg-white p-6 rounded-xl text-center shadow-xl relative mt-12 md:mt-0 mx-4 max-w-sm w-full">
+            <button
+              onClick={() => setShowConfirmLogout(false)}
+              className="absolute top-3 right-3 text-gray-500 hover:text-red-600"
+            >
+              ✕
+            </button>
+            <h2 className="text-xl font-bold text-gray-800 mb-2">
+              লগআউট নিশ্চিত করুন
+            </h2>
+            <p className="text-gray-600 mb-6">
+              আপনি কি নিশ্চিত যে আপনি লগআউট করতে চান?
+            </p>
+            <div className="flex justify-center gap-4 mt-4">
+              <button
+                onClick={() => setShowConfirmLogout(false)}
+                className="px-4 py-2 border border-gray-300 text-gray-600 rounded-lg hover:bg-gray-50"
+              >
+                বাতিল
+              </button>
+              <button
+                onClick={confirmLogout}
+                className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
+              >
+                হ্যাঁ, লগআউট করুন
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* LOGOUT SUCCESS MODAL (UPDATED WITH X BUTTON) */}
       {showLogoutModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[999]">
-          <div className="bg-white p-6 rounded-xl text-center shadow-xl">
+          <div className="bg-white p-6 rounded-xl text-center shadow-xl relative mt-12 md:mt-0 mx-4">
+
+            {/* ❌ CLOSE BUTTON (NEW) */}
+            <button
+              onClick={() => setShowLogoutModal(false)}
+              className="absolute top-3 right-3 text-gray-500 hover:text-red-600"
+            >
+              ✕
+            </button>
+
             <h2 className="text-xl font-bold text-green-600">
               লগআউট সফল হয়েছে
             </h2>
@@ -179,10 +227,11 @@ export default function Navbar() {
 
             <button
               onClick={() => setShowLogoutModal(false)}
-              className="mt-4 px-4 py-2 bg-red-600 text-white rounded-lg"
+              className="mt-6 px-6 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
             >
               ঠিক আছে
             </button>
+
           </div>
         </div>
       )}

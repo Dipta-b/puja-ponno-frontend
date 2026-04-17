@@ -72,8 +72,8 @@ export default function CategoryPage() {
         <div className="min-h-screen bg-white/40 pt-28 pb-20">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 
-                <button onClick={() => navigate(-1)} className="flex items-center text-gray-500 hover:text-sindoor-red transition mb-6">
-                    <ArrowLeft className="w-4 h-4 mr-2" /> Back
+                <button onClick={() => navigate(-1)} className="flex items-center font-bengali text-gray-500 hover:text-sindoor-red transition mb-6">
+                    <ArrowLeft className="w-4 h-4 mr-2" /> ফিরে যান
                 </button>
 
                 {/* Category Tabs */}
@@ -100,7 +100,7 @@ export default function CategoryPage() {
                 <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12">
                     <div>
                         <h1 className="font-heading text-4xl text-sindoor-red mb-2">{categoryName}</h1>
-                        <p className="font-bengali text-gray-600">Showing {filteredProducts.length} result(s)</p>
+                        <p className="font-bengali text-gray-600">সর্বমোট {filteredProducts.length} টি ফলাফল দেখানো হচ্ছে</p>
                     </div>
 
                     <div className="flex flex-col sm:flex-row gap-4 w-full md:w-auto">
@@ -108,7 +108,7 @@ export default function CategoryPage() {
                             <Search className="w-4 h-4 text-gray-400 mr-2" />
                             <input 
                                 type="text"
-                                placeholder="Search products..."
+                                placeholder="পণ্য খুঁজুন..."
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
                                 className="bg-transparent outline-none w-full text-sm font-bengali"
@@ -120,31 +120,31 @@ export default function CategoryPage() {
                             onChange={(e) => setSortBy(e.target.value)}
                             className="bg-white border border-gray-200 rounded-full px-4 py-2 text-sm font-bengali outline-none focus:border-golden-orange transition-colors"
                         >
-                            <option value="newest">Newest First</option>
-                            <option value="oldest">Oldest First</option>
-                            <option value="priceAsc">Price: Low to High</option>
-                            <option value="priceDesc">Price: High to Low</option>
+                            <option value="newest">নতুনত্ব অনুসারে</option>
+                            <option value="oldest">পুরাতন অনুসারে</option>
+                            <option value="priceAsc">দাম: কম থেকে বেশি</option>
+                            <option value="priceDesc">দাম: বেশি থেকে কম</option>
                         </select>
                     </div>
                 </div>
 
                 {filteredProducts.length === 0 ? (
                     <div className="text-center py-20 bg-white rounded-3xl border border-gray-100">
-                        <p className="text-gray-500 text-lg font-bengali">No products found matching your criteria.</p>
+                        <p className="text-gray-500 text-lg font-bengali">আপনার অনুসন্ধানের সাথে মিলে এমন কোনো পণ্য পাওয়া যায়নি।</p>
                         <button 
                             onClick={() => setSearchQuery('')}
-                            className="mt-4 text-sindoor-red hover:underline font-medium"
+                            className="mt-4 text-sindoor-red hover:underline font-medium font-bengali"
                         >
-                            Clear search
+                            অনুসন্ধান মুছুন
                         </button>
                     </div>
                 ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
                         {filteredProducts.map((product, index) => {
                             const badges = [];
-                            if (product.isFeatured) badges.push("Featured");
-                            if (product.isBestSeller) badges.push("Best Seller");
-                            if (product.discountPrice) badges.push("Sale");
+                            if (product.isFeatured) badges.push("ফিচার্ড");
+                            if (product.isBestSeller) badges.push("জনপ্রিয়");
+                            if (product.discountPrice) badges.push("সেল");
 
                             return (
                                 <motion.div
@@ -163,7 +163,7 @@ export default function CategoryPage() {
                                         />
                                         <div className="absolute top-3 left-3 flex flex-col gap-1.5">
                                             {badges.map(badge => (
-                                                <span key={badge} className="bg-sindoor-red text-white text-[10px] font-bold uppercase px-2.5 py-1 rounded-full shadow-sm">
+                                                <span key={badge} className="bg-sindoor-red text-white text-[11px] font-bold font-bengali px-2.5 py-1 rounded-full shadow-sm">
                                                     {badge}
                                                 </span>
                                             ))}
@@ -174,7 +174,7 @@ export default function CategoryPage() {
                                         <p className="text-xs text-golden-orange font-bold mb-1.5 uppercase tracking-wider">{categoryName}</p>
                                         <h3 className="font-heading text-lg text-gray-900 mb-2 leading-tight" title={product.name}>{product.name}</h3>
                                         <p className="font-bengali text-sm text-gray-500 mb-4 flex-grow line-clamp-2">
-                                            {product.description || 'No description available'}
+                                            {product.description || 'কোনো বিবরণ পাওয়া যায়নি।'}
                                         </p>
                                         
                                         <div className="flex items-center justify-between mt-auto pt-4 border-t border-gray-50">

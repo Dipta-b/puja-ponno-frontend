@@ -60,7 +60,7 @@ export default function PackageSection() {
                     </p>
                   )}
                   {pkg.duration > 0 && (
-                     <p className="text-xs text-gray-500 mt-2 font-bengali uppercase tracking-widest">{pkg.duration} Days Plan</p>
+                     <p className="text-xs text-gray-500 mt-2 font-bengali uppercase tracking-widest">{pkg.duration} দিনের প্ল্যান</p>
                   )}
                 </div>
 

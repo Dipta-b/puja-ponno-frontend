@@ -30,7 +30,7 @@ export default function TrustAndReviews() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!user) return alert("Please login to post a review!");
+    if (!user) return alert("মতামত জানাতে অনুগ্রহ করে লগিন করুন!");
 
     try {
       if (editingId) {
@@ -71,7 +71,7 @@ export default function TrustAndReviews() {
   };
 
   const handleDelete = async (id) => {
-    if (!window.confirm("Are you sure you want to delete your review?")) return;
+    if (!window.confirm("আপনি কি নিশ্চিত যে আপনি আপনার মতামত মুছে ফেলতে চান?")) return;
     try {
       const res = await fetch(`${API}/comments/${id}`, {
         method: 'DELETE',
@@ -165,7 +165,7 @@ export default function TrustAndReviews() {
                       {(review.name || "U").charAt(0).toUpperCase()}
                     </div>
                     <div>
-                      <h4 className="font-bengali font-bold text-gray-900">{user?.name}</h4>
+                      <h4 className="font-bengali font-bold text-gray-900">{review.name}</h4>
                       <span className="font-bengali text-sm text-gray-500">
                         {new Date(review.createdAt).toLocaleDateString('bn-BD', { year: 'numeric', month: 'long', day: 'numeric' })}
                       </span>

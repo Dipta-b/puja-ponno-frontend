@@ -83,21 +83,21 @@ export default function ProductGrid() {
                   onClick={() => navigate(`/category/${activeCategorySlug}`)}
                   className="font-bengali text-sindoor-red hover:text-golden-orange transition-colors font-medium border-b border-transparent hover:border-golden-orange ml-auto"
                 >
-                  View All Products
+                  সকল পণ্য দেখুন
                 </button>
             </div>
 
             {activeCategoryProducts.length === 0 ? (
                 <div className="text-center py-16 bg-white/50 rounded-2xl border border-gray-100">
-                    <p className="text-gray-500 font-bengali">This category currently has no products.</p>
+                    <p className="text-gray-500 font-bengali">এই ক্যাটাগরিতে বর্তমানে কোনো পণ্য নেই।</p>
                 </div>
             ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
                     {activeCategoryProducts.slice(0, 4).map((product, index) => {
                         const badges = [];
-                        if (product.isFeatured) badges.push("Featured");
-                        if (product.isBestSeller) badges.push("Best Seller");
-                        if (product.discountPrice) badges.push("Sale");
+                        if (product.isFeatured) badges.push("ফিচার্ড");
+                        if (product.isBestSeller) badges.push("জনপ্রিয়");
+                        if (product.discountPrice) badges.push("সেল");
 
                         return (
                             <motion.div
@@ -118,7 +118,7 @@ export default function ProductGrid() {
                                     />
                                     <div className="absolute top-2 left-2 flex flex-col gap-1">
                                         {badges.map(badge => (
-                                            <span key={badge} className="bg-sindoor-red/90 text-white text-[10px] uppercase px-2 py-0.5 rounded-full shadow-sm">
+                                            <span key={badge} className="bg-sindoor-red/90 text-white font-bengali text-[11px] px-2.5 py-0.5 rounded-full shadow-sm">
                                                 {badge}
                                             </span>
                                         ))}
@@ -126,12 +126,12 @@ export default function ProductGrid() {
                                 </div>
 
                                 <div className="p-5 flex-grow flex flex-col">
-                                    <p className="text-xs text-golden-orange font-medium mb-1 uppercase tracking-wider">
+                                    <p className="text-xs text-golden-orange font-medium mb-1 uppercase tracking-wider font-bengali">
                                         {categories.find(c => (c.slug || c.name.toLowerCase().replace(/ /g, '-')) === activeCategorySlug)?.name}
                                     </p>
                                     <h3 className="font-heading text-xl text-gray-800 mb-2 truncate" title={product.name}>{product.name}</h3>
                                     <p className="font-bengali text-sm text-gray-500 mb-4 flex-grow line-clamp-2">
-                                        {product.description || 'No description available'}
+                                        {product.description || 'কোনো বিবরণ পাওয়া যায়নি।'}
                                     </p>
                                     
                                     <div className="flex items-center justify-between mt-auto">

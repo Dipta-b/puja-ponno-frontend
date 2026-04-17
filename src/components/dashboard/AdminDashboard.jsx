@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { motion } from 'framer-motion';
-import { 
-    Search, Edit, Trash2, Eye, Plus, Shield, ShieldOff, Check, X, 
+import {
+    Search, Edit, Trash2, Eye, Plus, Shield, ShieldOff, Check, X,
     LayoutDashboard, Package, Users, Tags, Menu, LogOut
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
@@ -12,15 +12,26 @@ const API = 'http://localhost:5000';
 const AdminDashboard = () => {
     const [activeTab, setActiveTab] = useState('products');
     const [sidebarOpen, setSidebarOpen] = useState(false); // Closed by default on mobile
-    
+
     // Data states
     const [products, setProducts] = useState([]);
     const [users, setUsers] = useState([]);
-    const [categories, setCategories] = useState([]);
-    
+    const predefinedCategories = [
+        { _id: "pre-1", name: "Puja Packages", slug: "puja-packages" },
+        { _id: "pre-2", name: "Daily Puja Items", slug: "daily-puja-items" },
+        { _id: "pre-3", name: "Festival Special", slug: "festival-special" },
+        { _id: "pre-4", name: "Puja Accessories", slug: "puja-accessories" },
+        { _id: "pre-5", name: "Prasad & Items", slug: "prasad-items" },
+        { _id: "pre-6", name: "Gift Hampers", slug: "gift-hampers" }
+    ];
+
+    const [categories, setCategories] = useState(predefinedCategories);
+
     const [viewProduct, setViewProduct] = useState(null);
     const [editingProduct, setEditingProduct] = useState(null);
-    
+    const [editingPackage, setEditingPackage] = useState(null);
+    const [isAddingPackage, setIsAddingPackage] = useState(false);
+
     const [searchQuery, setSearchQuery] = useState('');
     const [sortBy, setSortBy] = useState('dateDesc');
     const [newCategoryName, setNewCategoryName] = useState('');
@@ -49,13 +60,15 @@ const AdminDashboard = () => {
             setUsers(Array.isArray(data) ? data : []);
         } catch (err) { }
     };
-    
+
     const fetchCategories = async () => {
         try {
             const res = await fetch(`${API}/categories`);
             const data = await res.json();
-            setCategories(data);
-        } catch (err) {}
+            const predefinedNames = predefinedCategories.map(p => p.name);
+            const uniqueFetched = data.filter(d => !predefinedNames.includes(d.name));
+            setCategories([...predefinedCategories, ...uniqueFetched]);
+        } catch (err) { }
     }
 
     // --- Product Handlers ---
@@ -102,11 +115,11 @@ const AdminDashboard = () => {
             alert('Failed to connect to server: ' + err.message);
         }
     };
-    
+
     // --- Category Handlers ---
     const handleAddCategory = async (e) => {
         e.preventDefault();
-        if(!newCategoryName.trim()) return;
+        if (!newCategoryName.trim()) return;
         try {
             const res = await fetch(`${API}/categories`, {
                 method: 'POST',
@@ -120,7 +133,7 @@ const AdminDashboard = () => {
             }
         } catch (err) { }
     };
-    
+
     const handleDeleteCategory = async (id) => {
         if (!window.confirm('Delete this category?')) return;
         try {
@@ -139,6 +152,45 @@ const AdminDashboard = () => {
         } catch (err) { }
     };
 
+    // --- Package Handlers ---
+    const handleSavePackage = async (e, pkgData, isNew) => {
+        e.preventDefault();
+        
+        const cleanItems = (pkgData.items || []).filter(i => i.name.trim() !== "");
+        
+        const payload = {
+            ...pkgData,
+            category: "Puja Packages",
+            categorySlug: "puja-packages",
+            items: cleanItems,
+            duration: Number(pkgData.duration) || 0,
+            discount: Number(pkgData.discount) || 0,
+            price: Number(pkgData.price) || 0
+        };
+
+        try {
+            const url = isNew ? `${API}/products` : `${API}/products/${pkgData._id}`;
+            const method = isNew ? 'POST' : 'PUT';
+            
+            const res = await fetch(url, {
+                method,
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
+                body: JSON.stringify(payload)
+            });
+            
+            if (res.ok) {
+                fetchProducts();
+                setIsAddingPackage(false);
+                setEditingPackage(null);
+            } else {
+                alert("Failed to save package");
+            }
+        } catch (err) {
+            console.error(err);
+        }
+    };
+
     const filteredProducts = products.filter(p => {
         const term = searchQuery.toLowerCase();
         return p.name?.toLowerCase().includes(term) || p.categorySlug?.toLowerCase().includes(term);
@@ -154,6 +206,9 @@ const AdminDashboard = () => {
 
     const admins = users.filter(u => u.role === 'admin');
     const nonAdmins = users.filter(u => u.role !== 'admin');
+    
+    // Filter out packages for general products view (or keep them, but let's separate to make it clear)
+    const packageProducts = products.filter(p => p.categorySlug === 'puja-packages' || p.duration);
 
     const renderProducts = () => (
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6">
@@ -169,8 +224,8 @@ const AdminDashboard = () => {
                     />
                 </div>
                 <div className="flex gap-3 w-full sm:w-auto">
-                    <select 
-                        value={sortBy} 
+                    <select
+                        value={sortBy}
                         onChange={e => setSortBy(e.target.value)}
                         className="bg-gray-50 border border-gray-200 rounded-lg px-4 py-2 outline-none text-sm w-full sm:w-auto"
                     >
@@ -179,7 +234,7 @@ const AdminDashboard = () => {
                         <option value="priceDesc">Price: High to Low</option>
                         <option value="priceAsc">Price: Low to High</option>
                     </select>
-                    <button 
+                    <button
                         onClick={() => navigate('/admin/add-product')}
                         className="flex items-center gap-2 bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-lg font-medium transition whitespace-nowrap"
                     >
@@ -244,10 +299,10 @@ const AdminDashboard = () => {
             <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
                 <h3 className="text-lg font-bold text-gray-800 mb-4">Add New Category</h3>
                 <form onSubmit={handleAddCategory} className="flex gap-4">
-                    <input 
-                        type="text" 
-                        value={newCategoryName} 
-                        onChange={e => setNewCategoryName(e.target.value)} 
+                    <input
+                        type="text"
+                        value={newCategoryName}
+                        onChange={e => setNewCategoryName(e.target.value)}
                         placeholder="Category Name (e.g. Daily Essentials)"
                         className="flex-1 px-4 py-2 border border-gray-200 rounded-lg outline-none focus:ring-2 focus:ring-orange-500"
                     />
@@ -256,7 +311,7 @@ const AdminDashboard = () => {
                     </button>
                 </form>
             </div>
-            
+
             <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
                 <table className="w-full text-left">
                     <thead className="bg-gray-50 text-gray-600 text-sm border-b border-gray-100">
@@ -267,17 +322,17 @@ const AdminDashboard = () => {
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-50">
-                        {categories.map(cat => (
+                        {categories.filter(cat => !cat._id.toString().startsWith('pre-')).map(cat => (
                             <tr key={cat._id} className="hover:bg-gray-50/50 transition">
                                 <td className="px-6 py-4 font-medium text-gray-800">{cat.name}</td>
-                                <td className="px-6 py-4 text-gray-500">{cat.slug}</td>
+                                <td className="px-6 py-4 text-gray-500">{cat.slug || cat.name.toLowerCase().replace(/ /g, '-')}</td>
                                 <td className="px-6 py-4 text-right">
                                     <button onClick={() => handleDeleteCategory(cat._id)} className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition"><Trash2 className="w-4 h-4" /></button>
                                 </td>
                             </tr>
                         ))}
-                        {categories.length === 0 && (
-                            <tr><td colSpan="3" className="px-6 py-12 text-center text-gray-500">No categories found.</td></tr>
+                        {categories.filter(cat => !cat._id.toString().startsWith('pre-')).length === 0 && (
+                            <tr><td colSpan="3" className="px-6 py-12 text-center text-gray-500">No dynamic categories found.</td></tr>
                         )}
                     </tbody>
                 </table>
@@ -288,7 +343,7 @@ const AdminDashboard = () => {
     const renderRoles = () => (
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                
+
                 {/* Admins Panel */}
                 <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden flex flex-col">
                     <div className="p-4 bg-orange-50 border-b border-orange-100 flex items-center gap-3">
@@ -308,7 +363,7 @@ const AdminDashboard = () => {
                                             <p className="text-xs text-gray-500">{admin.email}</p>
                                         </div>
                                     </div>
-                                    <button 
+                                    <button
                                         onClick={() => updateUserRole(admin._id, 'user', 'approved')}
                                         className="text-xs font-semibold px-3 py-1.5 border border-red-200 text-red-600 hover:bg-red-50 rounded-md transition"
                                     >Demote</button>
@@ -341,11 +396,11 @@ const AdminDashboard = () => {
                                         </div>
                                     </div>
                                     <div className="flex items-center gap-2">
-                                        <button 
+                                        <button
                                             onClick={() => updateUserRole(u._id, 'admin', 'approved')}
                                             className="flex-1 sm:flex-none text-xs font-semibold px-3 py-1.5 bg-green-500 hover:bg-green-600 text-white rounded-md transition"
                                         >Make Admin</button>
-                                        <button 
+                                        <button
                                             onClick={() => updateUserRole(u._id, 'user', 'rejected')}
                                             className="flex-1 sm:flex-none text-xs font-semibold px-3 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-md transition"
                                         >Reject</button>
@@ -360,12 +415,50 @@ const AdminDashboard = () => {
         </motion.div>
     );
 
+    const renderPackages = () => (
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6">
+            <div className="flex justify-between items-center bg-white p-4 rounded-xl shadow-sm border border-gray-100">
+                <h2 className="text-xl font-bold text-gray-800">Manage Packages</h2>
+                <button
+                    onClick={() => setIsAddingPackage(true)}
+                    className="flex items-center gap-2 bg-sindoor-red hover:bg-red-700 text-white px-4 py-2 rounded-lg font-medium transition"
+                >
+                    <Plus className="w-5 h-5" /> Add Package
+                </button>
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                {packageProducts.map(pkg => (
+                    <div key={pkg._id} className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm relative group">
+                        <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition flex gap-2">
+                            <button onClick={() => setEditingPackage({ ...pkg, items: pkg.items || pkg.itemsIncluded || [] })} className="p-2 bg-orange-100 text-orange-600 rounded-lg hover:bg-orange-200"><Edit size={16} /></button>
+                            <button onClick={() => handleDeleteProduct(pkg._id)} className="p-2 bg-red-100 text-red-600 rounded-lg hover:bg-red-200"><Trash2 size={16} /></button>
+                        </div>
+                        {pkg.thumbnail && <img src={pkg.thumbnail} alt={pkg.name} className="w-full h-40 object-cover rounded-xl mb-4" />}
+                        <h3 className="font-bold text-xl text-gray-800">{pkg.name}</h3>
+                        <div className="flex gap-4 mt-2 mb-4 text-sm">
+                            <span className="text-sindoor-red font-bold">৳{pkg.price}</span>
+                            {pkg.duration && <span className="text-gray-500 bg-gray-100 px-2 py-0.5 rounded">{pkg.duration} Days</span>}
+                            {pkg.discount > 0 && <span className="text-green-600 bg-green-50 px-2 py-0.5 rounded">Save ৳{pkg.discount}</span>}
+                        </div>
+                        <p className="text-sm text-gray-500 line-clamp-2">{pkg.description}</p>
+                    </div>
+                ))}
+                {packageProducts.length === 0 && (
+                    <div className="col-span-3 py-12 text-center text-gray-500 bg-white rounded-xl border border-gray-100">
+                        No packages found. Add one!
+                    </div>
+                )}
+            </div>
+        </motion.div>
+    );
+
     return (
         <div className="min-h-screen bg-gray-50 flex mt-20 relative">
-            
+
             {/* MOBILE OVERLAY */}
             {sidebarOpen && (
-                <div 
+                <div
                     className="md:hidden fixed inset-0 z-10 bg-black/20 backdrop-blur-sm top-20"
                     onClick={() => setSidebarOpen(false)}
                 />
@@ -382,12 +475,13 @@ const AdminDashboard = () => {
                         <X className="w-5 h-5" />
                     </button>
                 </div>
-                
+
                 <nav className="flex-1 py-4 space-y-1 px-3">
                     {[
                         { id: 'products', icon: Package, label: 'Products' },
+                        { id: 'packages', icon: Check, label: 'Packages' },
                         { id: 'categories', icon: Tags, label: 'Categories' },
-                        { id: 'roles', icon: Shield, label: 'Roles & Permissions' },
+                        { id: 'roles', icon: Shield, label: 'Roles' },
                     ].map(item => (
                         <button
                             key={item.id}
@@ -411,7 +505,7 @@ const AdminDashboard = () => {
             {/* MAIN CONTENT */}
             <main className={`flex-1 transition-all duration-300 ${sidebarOpen ? 'md:ml-64' : 'md:ml-20'} ml-0 p-4 sm:p-6 md:p-8 relative min-w-0`}>
                 <div className="max-w-6xl mx-auto w-full">
-                    
+
                     {/* MOBILE TOP BAR */}
                     <div className="md:hidden mb-6 flex justify-between items-center bg-white p-4 rounded-xl shadow-sm border border-gray-100">
                         <h1 className="text-xl font-bold text-gray-800 capitalize">{activeTab.replace('-', ' ')} manager</h1>
@@ -426,6 +520,7 @@ const AdminDashboard = () => {
                     </div>
 
                     {activeTab === 'products' && renderProducts()}
+                    {activeTab === 'packages' && renderPackages()}
                     {activeTab === 'categories' && renderCategories()}
                     {activeTab === 'roles' && renderRoles()}
                 </div>
@@ -441,7 +536,7 @@ const AdminDashboard = () => {
                             <span className="text-xs font-bold uppercase tracking-wider text-orange-600 bg-orange-100 px-2.5 py-1 rounded-md">{viewProduct.categorySlug?.replace(/-/g, ' ')}</span>
                             <h2 className="text-2xl font-bold mt-3 text-gray-800">{viewProduct.name}</h2>
                             <p className="text-gray-500 mt-2 text-sm">{viewProduct.description || 'No description provided.'}</p>
-                            
+
                             <div className="mt-6 grid grid-cols-2 gap-4">
                                 <div className="bg-gray-50 p-4 rounded-xl border border-gray-100">
                                     <p className="text-xs text-gray-400 uppercase font-bold tracking-wider">Price</p>
@@ -459,40 +554,310 @@ const AdminDashboard = () => {
 
             {editingProduct && (
                 <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-                    <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden relative max-h-[90vh] flex flex-col">
+                    <motion.div
+                        initial={{ opacity: 0, scale: 0.95 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        className="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden relative max-h-[90vh] flex flex-col"
+                    >
                         <div className="bg-white border-b border-gray-100 px-6 py-4 flex items-center justify-between z-10 shrink-0">
                             <h2 className="text-xl font-bold text-gray-800">Edit Product</h2>
-                            <button type="button" onClick={() => setEditingProduct(null)} className="text-gray-400 hover:text-gray-600 p-2"><X className="w-5 h-5" /></button>
+                            <button
+                                type="button"
+                                onClick={() => setEditingProduct(null)}
+                                className="text-gray-400 hover:text-gray-600 p-2"
+                            >
+                                <X className="w-5 h-5" />
+                            </button>
                         </div>
+
                         <div className="overflow-y-auto p-6 flex-1">
                             <form id="edit-form" onSubmit={handleUpdateProduct} className="space-y-5">
+
+                                {/* NAME */}
                                 <div>
                                     <label className="block text-sm font-semibold text-gray-700 mb-1.5">Product Name</label>
-                                    <input required type="text" value={editingProduct.name} onChange={e => setEditingProduct({...editingProduct, name: e.target.value})} className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-orange-500 focus:bg-white transition" />
+                                    <input
+                                        type="text"
+                                        value={editingProduct.name || ""}
+                                        onChange={e => setEditingProduct({ ...editingProduct, name: e.target.value })}
+                                        className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl"
+                                    />
                                 </div>
+
+                                {/* CATEGORY */}
+                                <div>
+                                    <label className="block text-sm font-semibold text-gray-700 mb-1.5">Category</label>
+                                    <select
+                                        value={editingProduct.category || ""}
+                                        onChange={e => setEditingProduct({
+                                            ...editingProduct,
+                                            category: e.target.value,
+                                            categorySlug: e.target.value.toLowerCase().replace(/ /g, "-")
+                                        })}
+                                        className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl"
+                                    >
+                                        <option value="">Select Category</option>
+                                        {categories.map(cat => (
+                                            <option key={cat._id} value={cat.name}>
+                                                {cat.name}
+                                            </option>
+                                        ))}
+                                    </select>
+                                </div>
+
+                                {/* PRICE + STOCK */}
                                 <div className="grid grid-cols-2 gap-4">
-                                    <div>
-                                        <label className="block text-sm font-semibold text-gray-700 mb-1.5">Price (৳)</label>
-                                        <input required type="number" value={editingProduct.price} onChange={e => setEditingProduct({...editingProduct, price: Number(e.target.value)})} className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-orange-500 focus:bg-white transition" />
-                                    </div>
-                                    <div>
-                                        <label className="block text-sm font-semibold text-gray-700 mb-1.5">Stock available</label>
-                                        <input required type="number" value={editingProduct.stock} onChange={e => setEditingProduct({...editingProduct, stock: Number(e.target.value)})} className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-orange-500 focus:bg-white transition" />
-                                    </div>
+                                    <input
+                                        type="number"
+                                        placeholder="Price"
+                                        value={editingProduct.price || ""}
+                                        onChange={e => setEditingProduct({ ...editingProduct, price: Number(e.target.value) })}
+                                        className="px-4 py-2.5 bg-gray-50 border rounded-xl"
+                                    />
+                                    <input
+                                        type="number"
+                                        placeholder="Stock"
+                                        value={editingProduct.stock || ""}
+                                        onChange={e => setEditingProduct({ ...editingProduct, stock: Number(e.target.value) })}
+                                        className="px-4 py-2.5 bg-gray-50 border rounded-xl"
+                                    />
                                 </div>
+
+                                {/* DISCOUNT */}
+                                <input
+                                    type="number"
+                                    placeholder="Discount Price"
+                                    value={editingProduct.discountPrice || ""}
+                                    onChange={e => setEditingProduct({ ...editingProduct, discountPrice: Number(e.target.value) })}
+                                    className="w-full px-4 py-2.5 bg-gray-50 border rounded-xl"
+                                />
+
+                                {/* IMAGE */}
+                                <input
+                                    type="text"
+                                    placeholder="Image URL"
+                                    value={editingProduct.thumbnail || ""}
+                                    onChange={e => setEditingProduct({ ...editingProduct, thumbnail: e.target.value })}
+                                    className="w-full px-4 py-2.5 bg-gray-50 border rounded-xl"
+                                />
+
+                                {/* ITEMS INCLUDED */}
                                 <div>
-                                    <label className="block text-sm font-semibold text-gray-700 mb-1.5">Image URL</label>
-                                    <input type="text" value={editingProduct.thumbnail || ''} onChange={e => setEditingProduct({...editingProduct, thumbnail: e.target.value})} className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-orange-500 focus:bg-white transition" placeholder="https://" />
+                                    <h3 className="font-semibold">Items Included</h3>
+
+                                    {(editingProduct.itemsIncluded || []).map((item, index) => (
+                                        <div key={index} className="flex gap-2 mt-2">
+                                            <input
+                                                value={item.name}
+                                                onChange={(e) => {
+                                                    const updated = [...editingProduct.itemsIncluded];
+                                                    updated[index].name = e.target.value;
+                                                    setEditingProduct({ ...editingProduct, itemsIncluded: updated });
+                                                }}
+                                                className="border p-2 w-1/2"
+                                            />
+                                            <input
+                                                value={item.quantity}
+                                                onChange={(e) => {
+                                                    const updated = [...editingProduct.itemsIncluded];
+                                                    updated[index].quantity = e.target.value;
+                                                    setEditingProduct({ ...editingProduct, itemsIncluded: updated });
+                                                }}
+                                                className="border p-2 w-1/2"
+                                            />
+                                        </div>
+                                    ))}
                                 </div>
+
+                                {/* CHECKBOXES */}
+                                <label className="flex gap-2">
+                                    <input
+                                        type="checkbox"
+                                        checked={editingProduct.isFeatured || false}
+                                        onChange={e => setEditingProduct({ ...editingProduct, isFeatured: e.target.checked })}
+                                    />
+                                    Featured
+                                </label>
+
+                                <label className="flex gap-2">
+                                    <input
+                                        type="checkbox"
+                                        checked={editingProduct.isBestSeller || false}
+                                        onChange={e => setEditingProduct({ ...editingProduct, isBestSeller: e.target.checked })}
+                                    />
+                                    Best Seller
+                                </label>
+
+                                {/* DESCRIPTION */}
+                                <textarea
+                                    value={editingProduct.description || ""}
+                                    onChange={e => setEditingProduct({ ...editingProduct, description: e.target.value })}
+                                    className="w-full px-4 py-2.5 bg-gray-50 border rounded-xl"
+                                    placeholder="Description"
+                                />
+
+                                {/* PURITY */}
+                                <input
+                                    value={editingProduct.purityNote || ""}
+                                    onChange={e => setEditingProduct({ ...editingProduct, purityNote: e.target.value })}
+                                    placeholder="Purity Note"
+                                    className="w-full px-4 py-2.5 bg-gray-50 border rounded-xl"
+                                />
+
+                            </form>
+                        </div>
+
+                        <div className="p-6 border-t border-gray-100 bg-gray-50 flex justify-end gap-3">
+                            <button
+                                type="button"
+                                onClick={() => setEditingProduct(null)}
+                                className="px-5 py-2.5 text-gray-600 hover:bg-gray-200 rounded-xl"
+                            >
+                                Cancel
+                            </button>
+
+                            <button
+                                type="submit"
+                                form="edit-form"
+                                className="px-5 py-2.5 bg-orange-500 text-white rounded-xl"
+                            >
+                                Save Changes
+                            </button>
+                        </div>
+                    </motion.div>
+                </div>
+            )}
+
+            {/* PACKAGE MODAL (ADD / EDIT) */}
+            {(isAddingPackage || editingPackage) && (
+                <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+                    <motion.div
+                        initial={{ opacity: 0, scale: 0.95 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        className="bg-white rounded-2xl shadow-xl w-full max-w-lg overflow-hidden relative max-h-[90vh] flex flex-col"
+                    >
+                        <div className="bg-white border-b border-gray-100 px-6 py-4 flex items-center justify-between z-10 shrink-0">
+                            <h2 className="text-xl font-bold text-gray-800">{editingPackage ? 'Edit Package' : 'Add Package'}</h2>
+                            <button type="button" onClick={() => { setIsAddingPackage(false); setEditingPackage(null); }} className="text-gray-400 hover:text-gray-600 p-2"><X className="w-5 h-5" /></button>
+                        </div>
+                        <div className="overflow-y-auto p-6 flex-1">
+                            <form id="package-form" onSubmit={(e) => handleSavePackage(e, editingPackage || isAddingPackage, !editingPackage)} className="space-y-4">
+                                <input
+                                    type="text"
+                                    placeholder="Package Name"
+                                    required
+                                    value={(editingPackage || isAddingPackage)?.name || ""}
+                                    onChange={e => {
+                                        const val = e.target.value;
+                                        if (editingPackage) setEditingPackage({ ...editingPackage, name: val });
+                                        else setIsAddingPackage({ ...isAddingPackage, name: val });
+                                    }}
+                                    className="w-full px-4 py-2 bg-gray-50 border rounded-xl"
+                                />
+                                <div className="grid grid-cols-3 gap-4">
+                                    <input
+                                        type="number"
+                                        placeholder="Price"
+                                        required
+                                        value={(editingPackage || isAddingPackage)?.price || ""}
+                                        onChange={e => {
+                                            const val = e.target.value;
+                                            if (editingPackage) setEditingPackage({ ...editingPackage, price: val });
+                                            else setIsAddingPackage({ ...isAddingPackage, price: val });
+                                        }}
+                                        className="px-4 py-2 bg-gray-50 border rounded-xl"
+                                    />
+                                    <input
+                                        type="number"
+                                        placeholder="Discount"
+                                        value={(editingPackage || isAddingPackage)?.discount || ""}
+                                        onChange={e => {
+                                            const val = e.target.value;
+                                            if (editingPackage) setEditingPackage({ ...editingPackage, discount: val });
+                                            else setIsAddingPackage({ ...isAddingPackage, discount: val });
+                                        }}
+                                        className="px-4 py-2 bg-gray-50 border rounded-xl"
+                                    />
+                                    <input
+                                        type="number"
+                                        placeholder="Duration (Days)"
+                                        value={(editingPackage || isAddingPackage)?.duration || ""}
+                                        onChange={e => {
+                                            const val = e.target.value;
+                                            if (editingPackage) setEditingPackage({ ...editingPackage, duration: val });
+                                            else setIsAddingPackage({ ...isAddingPackage, duration: val });
+                                        }}
+                                        className="px-4 py-2 bg-gray-50 border rounded-xl"
+                                    />
+                                </div>
+                                <input
+                                    type="text"
+                                    placeholder="Image URL"
+                                    required
+                                    value={(editingPackage || isAddingPackage)?.thumbnail || ""}
+                                    onChange={e => {
+                                        const val = e.target.value;
+                                        if (editingPackage) setEditingPackage({ ...editingPackage, thumbnail: val });
+                                        else setIsAddingPackage({ ...isAddingPackage, thumbnail: val });
+                                    }}
+                                    className="w-full px-4 py-2 bg-gray-50 border rounded-xl"
+                                />
+                                <textarea
+                                    placeholder="Description"
+                                    value={(editingPackage || isAddingPackage)?.description || ""}
+                                    onChange={e => {
+                                        const val = e.target.value;
+                                        if (editingPackage) setEditingPackage({ ...editingPackage, description: val });
+                                        else setIsAddingPackage({ ...isAddingPackage, description: val });
+                                    }}
+                                    className="w-full px-4 py-2 bg-gray-50 border rounded-xl"
+                                />
+
+                                {/* Package Items */}
                                 <div>
-                                    <label className="block text-sm font-semibold text-gray-700 mb-1.5">Description</label>
-                                    <textarea rows={3} value={editingProduct.description || ''} onChange={e => setEditingProduct({...editingProduct, description: e.target.value})} className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-orange-500 focus:bg-white transition" />
+                                    <h3 className="font-semibold text-sm mb-2 text-gray-700">Package Items</h3>
+                                    {((editingPackage || isAddingPackage)?.items || []).map((item, index) => (
+                                        <div key={index} className="flex gap-2 mb-2">
+                                            <input
+                                                placeholder="Item Name"
+                                                value={item.name || ""}
+                                                onChange={(e) => {
+                                                    const updatedState = editingPackage ? { ...editingPackage } : { ...isAddingPackage };
+                                                    updatedState.items[index].name = e.target.value;
+                                                    if (editingPackage) setEditingPackage(updatedState); else setIsAddingPackage(updatedState);
+                                                }}
+                                                className="border p-2 w-2/3 bg-gray-50 rounded"
+                                            />
+                                            <input
+                                                placeholder="Qty"
+                                                value={item.quantity || ""}
+                                                onChange={(e) => {
+                                                    const updatedState = editingPackage ? { ...editingPackage } : { ...isAddingPackage };
+                                                    updatedState.items[index].quantity = e.target.value;
+                                                    if (editingPackage) setEditingPackage(updatedState); else setIsAddingPackage(updatedState);
+                                                }}
+                                                className="border p-2 w-1/3 bg-gray-50 rounded"
+                                            />
+                                        </div>
+                                    ))}
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            const updatedState = editingPackage ? { ...editingPackage } : { ...isAddingPackage };
+                                            if (!updatedState.items) updatedState.items = [];
+                                            updatedState.items.push({ name: "", quantity: "" });
+                                            if (editingPackage) setEditingPackage(updatedState); else setIsAddingPackage(updatedState);
+                                        }}
+                                        className="text-sindoor-red text-sm font-medium mt-1"
+                                    >
+                                        + Add Item
+                                    </button>
                                 </div>
                             </form>
                         </div>
-                        <div className="p-6 border-t border-gray-100 bg-gray-50 flex justify-end gap-3 shrink-0">
-                            <button type="button" onClick={() => setEditingProduct(null)} className="px-5 py-2.5 text-gray-600 font-medium hover:bg-gray-200 rounded-xl transition">Cancel</button>
-                            <button type="submit" form="edit-form" className="px-5 py-2.5 bg-orange-500 text-white font-medium rounded-xl hover:bg-orange-600 shadow-md shadow-orange-200 transition">Save Changes</button>
+                        <div className="p-6 border-t border-gray-100 bg-gray-50 flex justify-end gap-3">
+                            <button type="button" onClick={() => { setIsAddingPackage(false); setEditingPackage(null); }} className="px-5 py-2.5 text-gray-600 hover:bg-gray-200 rounded-xl">Cancel</button>
+                            <button type="submit" form="package-form" className="px-5 py-2.5 bg-sindoor-red text-white rounded-xl">Save Package</button>
                         </div>
                     </motion.div>
                 </div>

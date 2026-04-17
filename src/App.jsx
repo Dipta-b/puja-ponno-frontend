@@ -10,6 +10,8 @@ import LoginForm from './pages/LoginForm';
 import AdminRoute from './secureRoutes/AdminRoute';
 import AdminDashboard from './components/dashboard/AdminDashboard';
 import AddProduct from './pages/AddProduct';
+import CategoryPage from './pages/CategoryPage';
+
 function App() {
   return (
     <Router>
@@ -24,6 +26,7 @@ function App() {
             <Route path="/checkout" element={<Checkout />} />
             <Route path='/register' element={<RegisterForm />} />
             <Route path='/login' element={<LoginForm />} />
+            <Route path='/category/:slug' element={<CategoryPage />} />
             <Route path='/dashboard' element={<Navigate to="/admin" replace />} />
 
             <Route

@@ -2,7 +2,8 @@ import React, { useState, Fragment } from "react";
 import { useForm } from "react-hook-form";
 import { Dialog, Transition } from "@headlessui/react";
 import { AiFillEye, AiFillEyeInvisible } from "react-icons/ai";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import toast from "react-hot-toast";
 
 function RegisterForm() {
   const {
@@ -15,6 +16,7 @@ function RegisterForm() {
   const [showPassword, setShowPassword] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
   const [registeredUser, setRegisteredUser] = useState(null);
+  const navigate = useNavigate();
 
   const onSubmit = async (data) => {
     try {
@@ -30,7 +32,7 @@ function RegisterForm() {
       const result = await res.json();
 
       if (!res.ok) {
-        alert(result.message || "রেজিস্ট্রেশন ব্যর্থ হয়েছে");
+        toast.error(result.message || "রেজিস্ট্রেশন ব্যর্থ হয়েছে");
         return;
       }
 
@@ -40,7 +42,7 @@ function RegisterForm() {
 
     } catch (err) {
       console.error(err);
-      alert("সার্ভার সমস্যা হয়েছে");
+      toast.error("সার্ভার সমস্যা হয়েছে");
     }
   };
 
@@ -147,7 +149,10 @@ function RegisterForm() {
               <p>স্বাগতম, {registeredUser?.name}</p>
 
               <button
-                onClick={() => setIsOpen(false)}
+                onClick={() => {
+                  setIsOpen(false);
+                  navigate("/login");
+                }}
                 className="mt-4 px-4 py-2 bg-yellow-500 text-white rounded"
               >
                 ঠিক আছে

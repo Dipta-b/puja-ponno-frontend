@@ -2,7 +2,7 @@ import React, { useState, useEffect, useContext } from 'react';
 import { motion } from 'framer-motion';
 import {
     Search, Edit, Trash2, Eye, Plus, Shield, ShieldOff, Check, X,
-    LayoutDashboard, Package, Users, Tags, Menu, LogOut
+    LayoutDashboard, Package, Users, Tags, Menu, LogOut, CreditCard
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { AuthContext } from '../../context/AuthContext';
@@ -17,12 +17,12 @@ const AdminDashboard = () => {
     const [products, setProducts] = useState([]);
     const [users, setUsers] = useState([]);
     const predefinedCategories = [
-        { _id: "pre-1", name: "Puja Packages", slug: "puja-packages" },
-        { _id: "pre-2", name: "Daily Puja Items", slug: "daily-puja-items" },
-        { _id: "pre-3", name: "Festival Special", slug: "festival-special" },
-        { _id: "pre-4", name: "Puja Accessories", slug: "puja-accessories" },
-        { _id: "pre-5", name: "Prasad & Items", slug: "prasad-items" },
-        { _id: "pre-6", name: "Gift Hampers", slug: "gift-hampers" }
+        { _id: "pre-1", name: "Puja Packages", nameBn: "পূজা প্যাকেজ", slug: "puja-packages" },
+        { _id: "pre-2", name: "Daily Puja Items", nameBn: "নিত্য পূজার সামগ্রী", slug: "daily-puja-items" },
+        { _id: "pre-3", name: "Festival Special", nameBn: "উৎসব স্পেশাল", slug: "festival-special" },
+        { _id: "pre-4", name: "Puja Accessories", nameBn: "পূজার অনুষঙ্গ", slug: "puja-accessories" },
+        { _id: "pre-5", name: "Prasad & Items", nameBn: "প্রসাদ ইত্যাদি", slug: "prasad-items" },
+        { _id: "pre-6", name: "Gift Hampers", nameBn: "উপহার সামগ্রী", slug: "gift-hampers" }
     ];
 
     const [categories, setCategories] = useState(predefinedCategories);
@@ -35,6 +35,13 @@ const AdminDashboard = () => {
     const [searchQuery, setSearchQuery] = useState('');
     const [sortBy, setSortBy] = useState('dateDesc');
     const [newCategoryName, setNewCategoryName] = useState('');
+    const [newCategoryNameBn, setNewCategoryNameBn] = useState('');
+    
+    // User History States
+    const [userOrders, setUserOrders] = useState([]);
+    const [isHistoryModalOpen, setIsHistoryModalOpen] = useState(false);
+    const [selectedCustomer, setSelectedCustomer] = useState(null);
+    const [historyLoading, setHistoryLoading] = useState(false);
 
     const navigate = useNavigate();
     const { user, setUser } = useContext(AuthContext);
@@ -116,6 +123,21 @@ const AdminDashboard = () => {
         }
     };
 
+    const fetchUserHistory = async (userRecord) => {
+        setHistoryLoading(true);
+        setSelectedCustomer(userRecord);
+        setIsHistoryModalOpen(true);
+        try {
+            const res = await fetch(`${API}/orders/user/${userRecord._id}`, { credentials: 'include' });
+            const data = await res.json();
+            setUserOrders(Array.isArray(data) ? data : []);
+        } catch (err) {
+            console.error("Fetch history fail:", err);
+        } finally {
+            setHistoryLoading(false);
+        }
+    };
+
     // --- Category Handlers ---
     const handleAddCategory = async (e) => {
         e.preventDefault();
@@ -125,10 +147,11 @@ const AdminDashboard = () => {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 credentials: 'include',
-                body: JSON.stringify({ name: newCategoryName })
+                body: JSON.stringify({ name: newCategoryName, nameBn: newCategoryNameBn })
             });
             if (res.ok) {
                 setNewCategoryName('');
+                setNewCategoryNameBn('');
                 fetchCategories();
             }
         } catch (err) { }
@@ -298,7 +321,7 @@ const AdminDashboard = () => {
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6">
             <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
                 <h3 className="text-lg font-bold text-gray-800 mb-4">Add New Category</h3>
-                <form onSubmit={handleAddCategory} className="flex gap-4">
+                <form onSubmit={handleAddCategory} className="flex gap-4 flex-col sm:flex-row">
                     <input
                         type="text"
                         value={newCategoryName}
@@ -306,36 +329,47 @@ const AdminDashboard = () => {
                         placeholder="Category Name (e.g. Daily Essentials)"
                         className="flex-1 px-4 py-2 border border-gray-200 rounded-lg outline-none focus:ring-2 focus:ring-orange-500"
                     />
-                    <button type="submit" className="bg-gray-800 hover:bg-gray-900 text-white px-6 py-2 rounded-lg font-medium transition">
+                    <input
+                        type="text"
+                        value={newCategoryNameBn}
+                        onChange={e => setNewCategoryNameBn(e.target.value)}
+                        placeholder="Bangla Name (e.g. নিত্য প্রয়োজনীয়)"
+                        className="flex-1 px-4 py-2 border border-gray-200 rounded-lg outline-none focus:ring-2 focus:ring-orange-500 font-bengali"
+                    />
+                    <button type="submit" className="bg-gray-800 hover:bg-gray-900 text-white px-6 py-2 rounded-lg font-medium transition whitespace-nowrap">
                         Add Category
                     </button>
                 </form>
             </div>
 
             <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-                <table className="w-full text-left">
-                    <thead className="bg-gray-50 text-gray-600 text-sm border-b border-gray-100">
-                        <tr>
-                            <th className="px-6 py-4 font-semibold">Category Name</th>
-                            <th className="px-6 py-4 font-semibold">Slug</th>
-                            <th className="px-6 py-4 font-semibold text-right">Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody className="divide-y divide-gray-50">
-                        {categories.filter(cat => !cat._id.toString().startsWith('pre-')).map(cat => (
-                            <tr key={cat._id} className="hover:bg-gray-50/50 transition">
-                                <td className="px-6 py-4 font-medium text-gray-800">{cat.name}</td>
-                                <td className="px-6 py-4 text-gray-500">{cat.slug || cat.name.toLowerCase().replace(/ /g, '-')}</td>
-                                <td className="px-6 py-4 text-right">
-                                    <button onClick={() => handleDeleteCategory(cat._id)} className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition"><Trash2 className="w-4 h-4" /></button>
-                                </td>
+                <div className="overflow-x-auto">
+                    <table className="w-full text-left whitespace-nowrap">
+                        <thead className="bg-gray-50 text-gray-600 text-sm border-b border-gray-100">
+                            <tr>
+                                <th className="px-6 py-4 font-semibold">Category Name</th>
+                                <th className="px-6 py-4 font-semibold font-bengali">Bangla Name</th>
+                                <th className="px-6 py-4 font-semibold">Slug</th>
+                                <th className="px-6 py-4 font-semibold text-right">Actions</th>
                             </tr>
-                        ))}
-                        {categories.filter(cat => !cat._id.toString().startsWith('pre-')).length === 0 && (
-                            <tr><td colSpan="3" className="px-6 py-12 text-center text-gray-500">No dynamic categories found.</td></tr>
-                        )}
-                    </tbody>
-                </table>
+                        </thead>
+                        <tbody className="divide-y divide-gray-50">
+                            {categories.filter(cat => !cat._id.toString().startsWith('pre-')).map(cat => (
+                                <tr key={cat._id} className="hover:bg-gray-50/50 transition">
+                                    <td className="px-6 py-4 font-medium text-gray-800">{cat.name}</td>
+                                    <td className="px-6 py-4 font-medium text-gray-800 font-bengali">{cat.nameBn || "-"}</td>
+                                    <td className="px-6 py-4 text-gray-500">{cat.slug || cat.name.toLowerCase().replace(/ /g, '-')}</td>
+                                    <td className="px-6 py-4 text-right">
+                                        <button onClick={() => handleDeleteCategory(cat._id)} className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition"><Trash2 className="w-4 h-4" /></button>
+                                    </td>
+                                </tr>
+                            ))}
+                            {categories.filter(cat => !cat._id.toString().startsWith('pre-')).length === 0 && (
+                                <tr><td colSpan="4" className="px-6 py-12 text-center text-gray-500">No dynamic categories found.</td></tr>
+                            )}
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </motion.div>
     );
@@ -395,15 +429,25 @@ const AdminDashboard = () => {
                                             <p className="text-xs text-gray-500">{u.email}</p>
                                         </div>
                                     </div>
-                                    <div className="flex items-center gap-2">
+                                    <div className="flex items-center gap-3">
                                         <button
-                                            onClick={() => updateUserRole(u._id, 'admin', 'approved')}
-                                            className="flex-1 sm:flex-none text-xs font-semibold px-3 py-1.5 bg-green-500 hover:bg-green-600 text-white rounded-md transition"
-                                        >Make Admin</button>
-                                        <button
-                                            onClick={() => updateUserRole(u._id, 'user', 'rejected')}
-                                            className="flex-1 sm:flex-none text-xs font-semibold px-3 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-md transition"
-                                        >Reject</button>
+                                            onClick={() => fetchUserHistory(u)}
+                                            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-md transition border border-blue-100"
+                                            title="View Order History"
+                                        >
+                                            <Package className="w-4 h-4" />
+                                            History
+                                        </button>
+                                        <div className="flex items-center gap-2">
+                                            <button
+                                                onClick={() => updateUserRole(u._id, 'admin', 'approved')}
+                                                className="flex-1 sm:flex-none text-xs font-semibold px-3 py-1.5 bg-green-500 hover:bg-green-600 text-white rounded-md transition"
+                                            >Make Admin</button>
+                                            <button
+                                                onClick={() => updateUserRole(u._id, 'user', 'rejected')}
+                                                className="flex-1 sm:flex-none text-xs font-semibold px-3 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-md transition"
+                                            >Reject</button>
+                                        </div>
                                     </div>
                                 </div>
                             ))}
@@ -482,10 +526,14 @@ const AdminDashboard = () => {
                         { id: 'packages', icon: Check, label: 'Packages' },
                         { id: 'categories', icon: Tags, label: 'Categories' },
                         { id: 'roles', icon: Shield, label: 'Roles' },
+                        { id: 'payments', icon: CreditCard, label: 'Payments' },
                     ].map(item => (
                         <button
                             key={item.id}
-                            onClick={() => setActiveTab(item.id)}
+                            onClick={() => {
+                                if (item.id === 'payments') navigate('/admin/payments');
+                                else setActiveTab(item.id);
+                            }}
                             className={`w-full flex items-center ${sidebarOpen ? 'justify-start px-4' : 'justify-center px-0'} py-3 rounded-xl transition ${activeTab === item.id ? 'bg-orange-50 text-orange-600 font-semibold shadow-sm' : 'text-gray-600 hover:bg-gray-50'}`}
                         >
                             <item.icon className="w-5 h-5" />
@@ -858,6 +906,85 @@ const AdminDashboard = () => {
                         <div className="p-6 border-t border-gray-100 bg-gray-50 flex justify-end gap-3">
                             <button type="button" onClick={() => { setIsAddingPackage(false); setEditingPackage(null); }} className="px-5 py-2.5 text-gray-600 hover:bg-gray-200 rounded-xl">Cancel</button>
                             <button type="submit" form="package-form" className="px-5 py-2.5 bg-sindoor-red text-white rounded-xl">Save Package</button>
+                        </div>
+                    </motion.div>
+                </div>
+            )}
+
+            {/* USER ORDER HISTORY MODAL */}
+            {isHistoryModalOpen && (
+                <div className="fixed inset-0 z-[70] flex items-center justify-center p-4 bg-black/60 backdrop-blur-md">
+                    <motion.div 
+                        initial={{ opacity: 0, y: 50 }} 
+                        animate={{ opacity: 1, y: 0 }} 
+                        className="bg-white rounded-3xl shadow-2xl w-full max-w-2xl overflow-hidden flex flex-col max-h-[85vh]"
+                    >
+                        <div className="p-6 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
+                            <div>
+                                <h2 className="text-xl font-bold text-gray-800 flex items-center gap-2">
+                                    <Package className="text-blue-600" />
+                                    Order History
+                                </h2>
+                                <p className="text-sm text-gray-500">{selectedCustomer?.name} ({selectedCustomer?.email})</p>
+                            </div>
+                            <button onClick={() => setIsHistoryModalOpen(false)} className="p-2 hover:bg-gray-200 rounded-full transition"><X /></button>
+                        </div>
+
+                        <div className="p-6 overflow-y-auto flex-1 space-y-6">
+                            {historyLoading ? (
+                                <div className="text-center py-12">
+                                    <div className="animate-spin w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full mx-auto mb-4"></div>
+                                    <p className="text-gray-500">Loading order history...</p>
+                                </div>
+                            ) : userOrders.length === 0 ? (
+                                <div className="text-center py-12 text-gray-500 italic">
+                                    No orders found for this customer.
+                                </div>
+                            ) : (
+                                userOrders.map(order => (
+                                    <div key={order._id} className="border border-gray-100 rounded-2xl p-5 bg-white shadow-sm hover:shadow-md transition-all">
+                                        <div className="flex justify-between items-start mb-4">
+                                            <div>
+                                                <span className="text-[10px] font-bold uppercase tracking-widest text-gray-400">Transaction ID</span>
+                                                <p className="font-mono text-sm font-bold text-gray-700">{order.tran_id}</p>
+                                            </div>
+                                            <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider ${
+                                                order.orderStatus === 'paid' ? 'bg-green-100 text-green-700' :
+                                                order.orderStatus === 'cancelled' ? 'bg-red-100 text-red-700' :
+                                                'bg-blue-100 text-blue-700'
+                                            }`}>
+                                                {order.orderStatus}
+                                            </span>
+                                        </div>
+
+                                        <div className="space-y-3">
+                                            {order.items.map((item, idx) => (
+                                                <div key={idx} className="flex justify-between items-center text-sm">
+                                                    <div className="flex items-center gap-3">
+                                                       <div className="w-8 h-8 bg-gray-50 rounded border border-gray-100 flex items-center justify-center text-[10px] font-bold">x{item.quantity}</div>
+                                                       <span className="text-gray-700 font-medium">{item.name}</span>
+                                                    </div>
+                                                    <span className="text-gray-500">৳{item.subtotal}</span>
+                                                </div>
+                                            ))}
+                                        </div>
+
+                                        <div className="mt-4 pt-4 border-t border-dashed border-gray-100 flex justify-between items-center">
+                                            <div className="text-xs text-gray-400">
+                                                {new Date(order.createdAt).toLocaleDateString()} at {new Date(order.createdAt).toLocaleTimeString()}
+                                            </div>
+                                            <div className="text-right">
+                                                <p className="text-xs text-gray-400">Total Paid</p>
+                                                <p className="text-lg font-black text-gray-900">৳{order.pricing.totalAmount}</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                ))
+                            )}
+                        </div>
+                        
+                        <div className="p-4 bg-gray-50 border-t border-gray-100 flex justify-center">
+                             <p className="text-[10px] text-gray-400 font-bold uppercase">End of History</p>
                         </div>
                     </motion.div>
                 </div>

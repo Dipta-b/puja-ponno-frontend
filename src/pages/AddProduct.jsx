@@ -5,12 +5,12 @@ const AddProduct = () => {
     const { register, handleSubmit, setValue, watch } = useForm();
 
     const predefinedCategories = [
-        { _id: "pre-1", name: "Puja Packages", slug: "puja-packages" },
-        { _id: "pre-2", name: "Daily Puja Items", slug: "daily-puja-items" },
-        { _id: "pre-3", name: "Festival Special", slug: "festival-special" },
-        { _id: "pre-4", name: "Puja Accessories", slug: "puja-accessories" },
-        { _id: "pre-5", name: "Prasad & Items", slug: "prasad-items" },
-        { _id: "pre-6", name: "Gift Hampers", slug: "gift-hampers" }
+        { _id: "pre-1", name: "Puja Packages", nameBn: "পূজা প্যাকেজ", slug: "puja-packages" },
+        { _id: "pre-2", name: "Daily Puja Items", nameBn: "নিত্য পূজার সামগ্রী", slug: "daily-puja-items" },
+        { _id: "pre-3", name: "Festival Special", nameBn: "উৎসব স্পেশাল", slug: "festival-special" },
+        { _id: "pre-4", name: "Puja Accessories", nameBn: "পূজার অনুষঙ্গ", slug: "puja-accessories" },
+        { _id: "pre-5", name: "Prasad & Items", nameBn: "প্রসাদ ইত্যাদি", slug: "prasad-items" },
+        { _id: "pre-6", name: "Gift Hampers", nameBn: "উপহার সামগ্রী", slug: "gift-hampers" }
     ];
 
     const [categories, setCategories] = useState(predefinedCategories);
@@ -150,7 +150,7 @@ const AddProduct = () => {
                     <option value="">Select Category</option>
                     {categories.map((cat) => (
                         <option key={cat._id} value={cat.name}>
-                            {cat.name}
+                            {cat.name} {cat.nameBn ? `(${cat.nameBn})` : ""}
                         </option>
                     ))}
                 </select>

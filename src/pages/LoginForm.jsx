@@ -1,7 +1,9 @@
 import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import { AiFillEye, AiFillEyeInvisible } from "react-icons/ai";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import toast from "react-hot-toast";
+import { AuthContext } from "../context/AuthContext";
 
 function LoginForm() {
     const {
@@ -11,8 +13,11 @@ function LoginForm() {
         reset,
     } = useForm();
 
+    const { setUser } = React.useContext(AuthContext);
+
     const [showPassword, setShowPassword] = useState(false);
     const [loading, setLoading] = useState(false);
+    const navigate = useNavigate();
 
     const onSubmit = async (data) => {
         try {
@@ -30,19 +35,20 @@ function LoginForm() {
             const result = await res.json();
 
             if (!res.ok) {
-                alert(result.message || "লগইন ব্যর্থ হয়েছে");
+                toast.error(result.message || "লগইন ব্যর্থ হয়েছে");
                 return;
             }
 
-            alert("লগইন সফল হয়েছে 🎉");
+            toast.success("লগইন সফল হয়েছে 🎉");
+            setUser(result);
             console.log("USER:", result);
 
             reset();
-            window.location.href = "/"
+            navigate("/");
 
         } catch (err) {
             console.error(err);
-            alert("সার্ভার সমস্যা হয়েছে");
+            toast.error("সার্ভার সমস্যা হয়েছে");
         } finally {
             setLoading(false);
         }

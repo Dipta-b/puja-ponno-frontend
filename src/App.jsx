@@ -1,4 +1,5 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { Toaster } from 'react-hot-toast';
 import CustomCursor from './components/ui/CustomCursor';
 import Navbar from './components/layout/Navbar';
 import Footer from './components/layout/Footer';
@@ -11,11 +12,13 @@ import AdminRoute from './secureRoutes/AdminRoute';
 import AdminDashboard from './components/dashboard/AdminDashboard';
 import AddProduct from './pages/AddProduct';
 import CategoryPage from './pages/CategoryPage';
+import AdminPayments from './pages/admin/AdminPayments';
 
 function App() {
   return (
     <Router>
       <div className="min-h-screen flex flex-col relative font-bengali selection:bg-golden-orange selection:text-white">
+        <Toaster position="top-center" reverseOrder={false} />
         <CustomCursor />
         <Navbar />
 
@@ -42,6 +45,14 @@ function App() {
               element={
                 <AdminRoute>
                   <AddProduct />
+                </AdminRoute>
+              }
+            />
+            <Route
+              path="/admin/payments"
+              element={
+                <AdminRoute>
+                  <AdminPayments />
                 </AdminRoute>
               }
             />

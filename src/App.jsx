@@ -13,6 +13,8 @@ import AdminDashboard from './components/dashboard/AdminDashboard';
 import AddProduct from './pages/AddProduct';
 import CategoryPage from './pages/CategoryPage';
 import AdminPayments from './pages/admin/AdminPayments';
+import Blogs from './pages/Blogs';
+import BlogDetail from './pages/BlogDetail';
 
 function App() {
   return (
@@ -56,6 +58,8 @@ function App() {
                 </AdminRoute>
               }
             />
+            <Route path="/blogs" element={<Blogs />} />
+            <Route path="/blog/:id" element={<BlogDetail />} />
           </Routes>
         </main>
 

@@ -3,9 +3,13 @@ import { motion } from 'framer-motion';
 import { MessageCircle } from 'lucide-react';
 
 export default function FloatingWhatsApp() {
+
+  const phoneNumber = "8801618990147";
+  const message = encodeURIComponent("Hello, I want to order Puja items");
+
   return (
     <motion.a
-      href="https://wa.me/1234567890" 
+      href={`https://wa.me/${phoneNumber}?text=${message}`}
       target="_blank"
       rel="noopener noreferrer"
       className="fixed bottom-6 right-6 w-14 h-14 bg-green-500 rounded-full shadow-[0_4px_14px_rgba(34,197,94,0.4)] flex items-center justify-center z-50 text-white cursor-none hover:bg-green-600 transition-colors"

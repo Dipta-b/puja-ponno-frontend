@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { ShoppingCart } from 'lucide-react';
+import { ShoppingCart, Info, X, CheckCircle2 } from 'lucide-react';
+
 import { useNavigate } from 'react-router-dom';
 import { useCart } from '../../context/CartContext';
 
@@ -29,6 +30,8 @@ export default function ProductGrid() {
     };
 
     const [activeCategorySlug, setActiveCategorySlug] = useState('all');
+    const [selectedProduct, setSelectedProduct] = useState(null);
+
 
     useEffect(() => {
         fetch(`${API}/categories`)
@@ -203,13 +206,23 @@ export default function ProductGrid() {
                                                     )}
                                                 </div>
 
-                                                <button 
-                                                    onClick={(e) => { e.stopPropagation(); addToCart(product, 1, true); }}
-                                                    className="bg-matte-sandal border border-golden-orange text-golden-orange hover:bg-gradient-to-r hover:from-sindoor-red hover:to-golden-orange hover:text-white hover:border-transparent p-2.5 rounded-full transition-all cursor-pointer shadow-sm hover:shadow-md"
-                                                    title="Add to Cart"
-                                                >
-                                                    <ShoppingCart size={18} />
-                                                </button>
+                                                <div className="flex gap-2">
+                                                    <button 
+                                                        onClick={(e) => { e.stopPropagation(); setSelectedProduct(product); }}
+                                                        className="bg-white border border-gray-200 text-gray-500 hover:text-sindoor-red hover:border-sindoor-red p-2.5 rounded-full transition-all cursor-pointer shadow-sm hover:shadow-md"
+                                                        title="View Details"
+                                                    >
+                                                        <Info size={18} />
+                                                    </button>
+                                                    <button 
+                                                        onClick={(e) => { e.stopPropagation(); addToCart(product, 1, true); }}
+                                                        className="bg-matte-sandal border border-golden-orange text-golden-orange hover:bg-gradient-to-r hover:from-sindoor-red hover:to-golden-orange hover:text-white hover:border-transparent p-2.5 rounded-full transition-all cursor-pointer shadow-sm hover:shadow-md"
+                                                        title="Add to Cart"
+                                                    >
+                                                        <ShoppingCart size={18} />
+                                                    </button>
+                                                </div>
+
                                             </div>
                                         </div>
 
@@ -219,7 +232,147 @@ export default function ProductGrid() {
                         </div>
                     )}
                 </div>
+
             </div>
+
+            {/* --- PRODUCT DETAIL MODAL --- */}
+            {selectedProduct && (
+                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-md">
+                    <motion.div
+                        initial={{ opacity: 0, scale: 0.9, y: 20 }}
+                        animate={{ opacity: 1, scale: 1, y: 0 }}
+                        className="bg-white rounded-3xl shadow-2xl w-full max-w-4xl overflow-hidden relative max-h-[90vh] flex flex-col md:flex-row"
+                    >
+                        {/* Close Button */}
+                        <button
+                            onClick={() => setSelectedProduct(null)}
+                            className="absolute top-4 right-4 p-2 bg-white/80 backdrop-blur-md rounded-full shadow-lg hover:bg-gray-100 text-gray-600 transition-all z-20"
+                        >
+                            <X size={20} />
+                        </button>
+
+                        {/* Image Section */}
+                        <div className="w-full md:w-1/2 h-64 md:h-auto bg-gray-50 relative">
+                            <img
+                                src={selectedProduct.thumbnail || "https://placehold.co/600x800?text=No+Image"}
+                                alt={selectedProduct.name}
+                                className="w-full h-full object-cover"
+                            />
+                            <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent pointer-events-none" />
+                        </div>
+
+                        {/* Content Section */}
+                        <div className="w-full md:w-1/2 p-8 overflow-y-auto flex flex-col">
+                            <div className="mb-6">
+                                <div className="flex flex-wrap gap-2 mb-3">
+                                    <span className="inline-block px-3 py-1 bg-orange-100 text-orange-600 text-[10px] font-bold uppercase tracking-widest rounded-full">
+                                        {selectedProduct.category || 'ক্যাটাগরি'}
+                                    </span>
+                                    {selectedProduct.isFeatured && (
+                                        <span className="bg-sindoor-red/10 text-sindoor-red text-[10px] font-bold px-3 py-1 rounded-full border border-sindoor-red/20">
+                                            ফিচার্ড
+                                        </span>
+                                    )}
+                                    {selectedProduct.isBestSeller && (
+                                        <span className="bg-amber-100 text-amber-600 text-[10px] font-bold px-3 py-1 rounded-full border border-amber-200">
+                                            সেরা বিক্রিত
+                                        </span>
+                                    )}
+                                </div>
+                                <h3 className="text-3xl font-heading text-gray-900 leading-tight">
+                                    {selectedProduct.name}
+                                </h3>
+                                <p className="text-[10px] font-mono text-gray-400 mt-2 uppercase tracking-tighter">
+                                    Product ID: {selectedProduct._id}
+                                </p>
+                            </div>
+
+                            <div className="flex items-center gap-6 mb-8">
+                                <div className="flex items-baseline gap-3">
+                                    {selectedProduct.discountPrice ? (
+                                        <>
+                                            <span className="text-3xl font-black text-sindoor-red">৳{selectedProduct.discountPrice}</span>
+                                            <span className="text-lg text-gray-400 line-through">৳{selectedProduct.price}</span>
+                                        </>
+                                    ) : (
+                                        <span className="text-3xl font-black text-sindoor-red">৳{selectedProduct.price}</span>
+                                    )}
+                                </div>
+                                
+                                <div className="h-8 w-px bg-gray-100" />
+
+                                <div>
+                                    <p className={`text-xs font-bold uppercase tracking-widest ${selectedProduct.stock > 0 ? 'text-emerald-500' : 'text-red-500'}`}>
+                                        {selectedProduct.stock > 0 ? `স্টক আছে: ${selectedProduct.stock}` : 'স্টক আউট'}
+                                    </p>
+                                </div>
+                            </div>
+
+                            <div className="space-y-6 flex-grow">
+                                {/* Trust Badges */}
+                                <div className="grid grid-cols-3 gap-2 py-4 border-y border-gray-100 mb-2">
+                                    <div className="text-center">
+                                        <div className="w-8 h-8 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center mx-auto mb-1">
+                                            <CheckCircle2 size={16} />
+                                        </div>
+                                        <p className="text-[9px] font-bold text-gray-500 uppercase">দ্রুত ডেলিভারি</p>
+                                    </div>
+                                    <div className="text-center">
+                                        <div className="w-8 h-8 bg-green-50 text-green-600 rounded-full flex items-center justify-center mx-auto mb-1">
+                                            <CheckCircle2 size={16} />
+                                        </div>
+                                        <p className="text-[9px] font-bold text-gray-500 uppercase">১০০% বিশুদ্ধ</p>
+                                    </div>
+                                    <div className="text-center">
+                                        <div className="w-8 h-8 bg-orange-50 text-orange-600 rounded-full flex items-center justify-center mx-auto mb-1">
+                                            <CheckCircle2 size={16} />
+                                        </div>
+                                        <p className="text-[9px] font-bold text-gray-500 uppercase">নিরাপদ পেমেন্ট</p>
+                                    </div>
+                                </div>
+
+                                <div className="prose prose-sm text-gray-600 font-bengali leading-relaxed">
+                                    <p>{selectedProduct.description || 'এই পণ্যটির কোনো বিস্তারিত বিবরণ এখনো পাওয়া যায়নি। তবে এটি আমাদের শ্রেষ্ঠ সংগ্রহের অংশ।'}</p>
+                                </div>
+
+                                {/* Items Included Section */}
+                                {(selectedProduct.itemsIncluded?.length > 0 || selectedProduct.items?.length > 0) && (
+                                    <div className="bg-gray-50 rounded-2xl p-6 border border-gray-100">
+                                        <h4 className="text-sm font-bold text-gray-800 uppercase tracking-widest border-b border-gray-200 pb-3 mb-4">
+                                            যা যা থাকছে এই প্যাকেজে
+                                        </h4>
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                            {(selectedProduct.itemsIncluded || selectedProduct.items).map((item, i) => (
+                                                <div key={i} className="flex items-center gap-2 text-sm text-gray-700 font-bengali">
+                                                    <CheckCircle2 size={14} className="text-green-500 shrink-0" />
+                                                    <span className="font-bold">{item.name}</span>
+                                                    <span className="text-gray-400">({item.quantity})</span>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
+
+                                {selectedProduct.purityNote && (
+                                    <p className="text-xs text-golden-orange font-medium italic border-l-2 border-golden-orange pl-3">
+                                        * {selectedProduct.purityNote}
+                                    </p>
+                                )}
+                            </div>
+
+                            <div className="mt-8 pt-6 border-t border-gray-100 flex gap-4">
+                                <button
+                                    onClick={() => { addToCart(selectedProduct, 1, true); setSelectedProduct(null); }}
+                                    className="flex-1 bg-gradient-to-r from-sindoor-red to-golden-orange text-white py-4 rounded-2xl font-bold shadow-xl shadow-sindoor-red/10 hover:shadow-sindoor-red/20 hover:-translate-y-0.5 transition-all flex items-center justify-center gap-3"
+                                >
+                                    <ShoppingCart size={20} /> কার্টে যুক্ত করুন
+                                </button>
+                            </div>
+                        </div>
+                    </motion.div>
+                </div>
+            )}
         </section>
+
     );
 }

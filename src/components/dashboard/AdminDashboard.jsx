@@ -427,7 +427,9 @@ const AdminDashboard = () => {
                                                 {u.status === 'pending' && <span className="px-2 py-0.5 bg-yellow-100 text-yellow-700 text-[10px] uppercase rounded-full tracking-wider font-bold">Pending</span>}
                                             </p>
                                             <p className="text-xs text-gray-500">{u.email}</p>
+                                            {u.phone && <p className="text-[10px] text-orange-600 font-bold mt-1">{u.phone}</p>}
                                         </div>
+
                                     </div>
                                     <div className="flex items-center gap-3">
                                         <button
@@ -925,7 +927,11 @@ const AdminDashboard = () => {
                                     <Package className="text-blue-600" />
                                     Order History
                                 </h2>
-                                <p className="text-sm text-gray-500">{selectedCustomer?.name} ({selectedCustomer?.email})</p>
+                                <p className="text-sm text-gray-500">
+                                    {selectedCustomer?.email} 
+                                    {selectedCustomer?.phone && <span className="ml-2 px-2 py-0.5 bg-orange-100 text-orange-600 rounded-md font-bold">{selectedCustomer?.phone}</span>}
+                                </p>
+
                             </div>
                             <button onClick={() => setIsHistoryModalOpen(false)} className="p-2 hover:bg-gray-200 rounded-full transition"><X /></button>
                         </div>

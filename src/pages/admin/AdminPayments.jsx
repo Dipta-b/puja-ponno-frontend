@@ -9,8 +9,17 @@ import {
   CheckCircle,
   XCircle,
   AlertCircle,
-  Eye
+  Eye,
+  X,
+  Copy,
+  ChevronRight,
+  Package,
+  User,
+  MapPin,
+  Clock,
+  ExternalLink
 } from 'lucide-react';
+
 import toast from 'react-hot-toast';
 
 export default function AdminPayments() {
@@ -19,6 +28,14 @@ export default function AdminPayments() {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [activeTab, setActiveTab] = useState('all');
+  
+  // New States for Drill-down
+  const [selectedLog, setSelectedLog] = useState(null);
+  const [associatedOrder, setAssociatedOrder] = useState(null);
+  const [orderLoading, setOrderLoading] = useState(false);
+  const [selectedProduct, setSelectedProduct] = useState(null);
+  const [showRawJson, setShowRawJson] = useState(false);
+
 
   const API = "http://localhost:5000";
 
@@ -48,6 +65,34 @@ export default function AdminPayments() {
       setLoading(false);
     }
   };
+
+  const fetchOrderDetails = async (tranId) => {
+    if (!tranId) return;
+    setOrderLoading(true);
+    setAssociatedOrder(null);
+    try {
+      const res = await fetch(`${API}/orders/tran/${tranId}`, { credentials: "include" });
+      if (res.ok) {
+        const data = await res.json();
+        setAssociatedOrder(data);
+      }
+    } catch (err) {
+      console.error("Order fetch error:", err);
+    } finally {
+      setOrderLoading(false);
+    }
+  };
+
+  const handleViewDetails = (log) => {
+    setSelectedLog(log);
+    fetchOrderDetails(log.tran_id);
+  };
+
+  const copyToClipboard = (text) => {
+    navigator.clipboard.writeText(text);
+    toast.success(" copied to clipboard!");
+  };
+
 
   const filteredLogs = logs.filter(log =>
     log.tran_id?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -147,9 +192,11 @@ export default function AdminPayments() {
               <thead>
                 <tr className="bg-gray-50 text-gray-600 text-sm">
                   <th className="px-6 py-4 font-semibold uppercase tracking-wider">Customer</th>
+                  <th className="px-6 py-4 font-semibold uppercase tracking-wider">Phone</th>
                   <th className="px-6 py-4 font-semibold uppercase tracking-wider">Transaction ID</th>
                   <th className="px-6 py-4 font-semibold uppercase tracking-wider">Step</th>
                   <th className="px-6 py-4 font-semibold uppercase tracking-wider text-right">Action</th>
+
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
@@ -166,10 +213,20 @@ export default function AdminPayments() {
                     <tr key={log._id} className="hover:bg-gray-50/50 transition-colors">
                       <td className="px-6 py-4">
                         <div className="flex flex-col">
-                          <span className="font-semibold text-gray-900">{log.data?.customer_name || log.data?.cus_name || 'System'}</span>
-                          <span className="text-xs text-gray-500">{log.data?.customer_email || log.data?.cus_email || 'n/a'}</span>
+                          <span className="font-semibold text-gray-900">
+                            {log.customer?.name || log.data?.customer_name || log.data?.cus_name || 'System Log'}
+                          </span>
+                          <span className="text-xs text-gray-500">
+                            {log.customer?.email || log.data?.customer_email || log.data?.cus_email || 'n/a'}
+                          </span>
                         </div>
                       </td>
+                      <td className="px-6 py-4">
+                        <span className="text-sm font-medium text-gray-700">
+                          {log.customer?.phone || log.data?.cus_phone || '—'}
+                        </span>
+                      </td>
+
                       <td className="px-6 py-4">
                         <span className="font-mono text-xs font-bold text-gray-700 bg-gray-100 px-2 py-1 rounded">
                           {log.tran_id}
@@ -193,12 +250,13 @@ export default function AdminPayments() {
                       </td>
                       <td className="px-6 py-4 text-right">
                         <button
-                          onClick={() => console.log(log)}
+                          onClick={() => handleViewDetails(log)}
                           className="p-2 hover:bg-orange-50 text-orange-600 rounded-lg transition-all"
                           title="View Data"
                         >
                           <Eye size={18} />
                         </button>
+
                       </td>
                     </tr>
                   ))
@@ -208,7 +266,265 @@ export default function AdminPayments() {
           </div>
         </div>
 
+
       </div>
+
+      {/* --- PAYMENT DETAILS MODAL --- */}
+      {selectedLog && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            className="bg-white rounded-3xl shadow-2xl w-full max-w-4xl overflow-hidden relative max-h-[90vh] flex flex-col"
+          >
+            {/* Modal Header */}
+            <div className="p-6 border-b border-gray-100 flex items-center justify-between bg-gray-50/50">
+              <div className="flex items-center gap-4">
+                <div className={`p-3 rounded-2xl ${selectedLog.step === 'ERROR' ? 'bg-red-100 text-red-600' : 'bg-emerald-100 text-emerald-600'}`}>
+                  <CreditCard size={24} />
+                </div>
+                <div>
+                  <h2 className="text-xl font-bold text-gray-900 leading-tight">ট্রানজ্যাকশন ডিটেইলস</h2>
+                  <div className="flex items-center gap-2 mt-1">
+                    <span className="font-mono text-sm text-gray-500">{selectedLog.tran_id}</span>
+                    <button onClick={() => copyToClipboard(selectedLog.tran_id)} className="text-gray-400 hover:text-orange-500 transition-colors">
+                      <Copy size={14} />
+                    </button>
+                  </div>
+                </div>
+              </div>
+              <button
+                onClick={() => setSelectedLog(null)}
+                className="p-2 hover:bg-gray-200 text-gray-400 rounded-full transition-all"
+              >
+                <X size={24} />
+              </button>
+            </div>
+
+            {/* Modal Body */}
+            <div className="flex-1 overflow-y-auto p-6 lg:p-8 space-y-8">
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                {/* Section 1: Customer & Logistics */}
+                <div className="space-y-6">
+                  <div>
+                    <h3 className="text-xs font-bold uppercase tracking-widest text-gray-400 mb-4 flex items-center gap-2">
+                      <User size={14} /> কাস্টমার ইনফো
+                    </h3>
+                    <div className="bg-gray-50 rounded-2xl p-5 border border-gray-100 space-y-3">
+                      <div className="flex justify-between items-center">
+                        <span className="text-sm text-gray-500">নাম</span>
+                        <span className="font-semibold text-gray-900">{selectedLog.customer?.name || selectedLog.data?.customer_name || selectedLog.data?.cus_name || 'N/A'}</span>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span className="text-sm text-gray-500">ইমেইল</span>
+                        <span className="text-sm font-medium text-gray-900">{selectedLog.customer?.email || selectedLog.data?.customer_email || selectedLog.data?.cus_email || 'N/A'}</span>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span className="text-sm text-gray-500">ফোন</span>
+                        <span className="text-sm font-black text-orange-600">{selectedLog.customer?.phone || selectedLog.data?.cus_phone || 'N/A'}</span>
+                      </div>
+
+
+                    </div>
+                  </div>
+
+                  <div>
+                    <h3 className="text-xs font-bold uppercase tracking-widest text-gray-400 mb-4 flex items-center gap-2">
+                      <MapPin size={14} /> ডেলিভারি অ্যাড্রেস
+                    </h3>
+                    <div className="bg-gray-50 rounded-2xl p-5 border border-gray-100">
+                      <p className="text-sm text-gray-700 leading-relaxed">
+                        {selectedLog.data?.cus_add1 || 'No address provided in this log step.'}
+                        {selectedLog.data?.cus_city && `, ${selectedLog.data.cus_city}`}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Section 2: Audit & Status */}
+                <div className="space-y-6">
+                  <div>
+                    <h3 className="text-xs font-bold uppercase tracking-widest text-gray-400 mb-4 flex items-center gap-2">
+                      <Clock size={14} /> অডিট ট্রেইল
+                    </h3>
+                    <div className="bg-gray-50 rounded-2xl p-5 border border-gray-100 space-y-4">
+                      <div className="flex justify-between items-center">
+                        <span className="text-sm text-gray-500">লগ স্টেপ</span>
+                        <span className={`text-xs font-bold px-2.5 py-1 rounded-lg ${
+                          selectedLog.step === 'ERROR' ? 'bg-red-100 text-red-600' :
+                          'bg-blue-100 text-blue-600'
+                        }`}>
+                          {selectedLog.step}
+                        </span>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span className="text-sm text-gray-500">সময়</span>
+                        <span className="text-sm font-medium text-gray-900">{new Date(selectedLog.timestamp).toLocaleString()}</span>
+                      </div>
+                      {selectedLog.data?.bank_tran_id && (
+                        <div className="flex justify-between items-center">
+                          <span className="text-sm text-gray-500">Bank Tran ID</span>
+                          <span className="font-mono text-xs font-bold text-gray-700">{selectedLog.data.bank_tran_id}</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Pricing Info if available */}
+                  {(selectedLog.data?.amount || selectedLog.data?.total_amount) && (
+                    <div className="bg-orange-50 rounded-2xl p-6 border border-orange-100 relative overflow-hidden group">
+                      <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+                        <CreditCard size={64} />
+                      </div>
+                      <p className="text-xs font-bold text-orange-600 uppercase tracking-widest mb-1">টোটাল অ্যামাউন্ট</p>
+                      <p className="text-3xl font-black text-orange-900">৳{selectedLog.data?.amount || selectedLog.data?.total_amount}</p>
+                      <p className="text-xs text-orange-400 mt-2 font-medium">Currency: {selectedLog.data?.currency || 'BDT'}</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* --- ASSOCIATED ORDER SECTION --- */}
+              <div className="pt-4">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-xs font-bold uppercase tracking-widest text-gray-400 flex items-center gap-2">
+                    <Package size={14} /> অর্ডার আইটেমস
+                  </h3>
+                  {orderLoading && (
+                    <div className="flex items-center gap-2 text-xs text-orange-500 font-medium animate-pulse">
+                      <div className="w-1.5 h-1.5 bg-orange-500 rounded-full"></div>
+                      অর্ডার ডিটেইলস লোড হচ্ছে...
+                    </div>
+                  )}
+                </div>
+
+                {!orderLoading && associatedOrder ? (
+                  <div className="bg-white border border-gray-100 rounded-3xl overflow-hidden shadow-sm">
+                    <table className="w-full text-left">
+                      <thead className="bg-gray-50 text-[10px] font-bold uppercase tracking-wider text-gray-500 border-b border-gray-100">
+                        <tr>
+                          <th className="px-6 py-4">প্রোডাক্ট</th>
+                          <th className="px-6 py-4 text-center">পরিমাণ</th>
+                          <th className="px-6 py-4 text-right">দাম</th>
+                          <th className="px-6 py-4"></th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-gray-50">
+                        {associatedOrder.items?.map((item, idx) => (
+                          <tr key={idx} className="hover:bg-gray-50/50 transition-colors">
+                            <td className="px-6 py-4">
+                              <div className="flex items-center gap-3">
+                                {item.thumbnail && <img src={item.thumbnail} className="w-10 h-10 rounded-lg object-cover bg-gray-100" alt="" />}
+                                <div>
+                                  <p className="text-sm font-bold text-gray-900 line-clamp-1">{item.name}</p>
+                                  <p className="text-[10px] text-gray-400 font-mono">ID: {item.productId || item._id}</p>
+                                </div>
+                              </div>
+                            </td>
+                            <td className="px-6 py-4 text-center text-sm font-semibold text-gray-700">× {item.quantity}</td>
+                            <td className="px-6 py-4 text-right text-sm font-bold text-gray-900">৳{item.price * item.quantity}</td>
+                            <td className="px-6 py-4 text-right">
+                              <button 
+                                onClick={() => setSelectedProduct(item)}
+                                className="p-2 hover:bg-orange-50 text-orange-500 rounded-lg transition-colors"
+                              >
+                                <ChevronRight size={18} />
+                              </button>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                ) : !orderLoading && !associatedOrder && selectedLog.step !== 'ERROR' ? (
+                  <div className="bg-gray-50 rounded-2xl p-8 text-center border border-dashed border-gray-200">
+                    <p className="text-sm text-gray-400 font-medium">এই ট্রানজ্যাকশনের জন্য কোনো অর্ডার পাওয়া যায়নি।</p>
+                  </div>
+                ) : null}
+              </div>
+
+              {/* --- RAW JSON VIEW --- */}
+              <div className="pt-4 border-t border-gray-100">
+                <button 
+                  onClick={() => setShowRawJson(!showRawJson)}
+                  className="text-xs font-bold text-gray-400 flex items-center gap-2 hover:text-gray-600 transition-colors"
+                >
+                  {showRawJson ? 'Hide Raw Audit Data' : 'Show Raw Audit Data'}
+                  <ChevronRight size={14} className={`transform transition-transform ${showRawJson ? 'rotate-90' : ''}`} />
+                </button>
+                
+                {showRawJson && (
+                  <motion.div 
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: 'auto' }}
+                    className="mt-4 bg-gray-900 rounded-2xl p-6 font-mono text-[11px] leading-relaxed text-emerald-400 overflow-x-auto relative"
+                  >
+                    <button 
+                      onClick={() => copyToClipboard(JSON.stringify(selectedLog.data, null, 2))}
+                      className="absolute top-4 right-4 p-2 bg-white/10 hover:bg-white/20 text-white rounded-lg transition-colors"
+                    >
+                      <Copy size={14} />
+                    </button>
+                    <pre>{JSON.stringify(selectedLog.data, null, 2)}</pre>
+                  </motion.div>
+                )}
+              </div>
+
+            </div>
+          </motion.div>
+        </div>
+      )}
+
+      {/* --- NESTED PRODUCT DETAIL MODAL --- */}
+      {selectedProduct && (
+        <div className="fixed inset-0 z-[70] flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm">
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="bg-white rounded-3xl shadow-2xl w-full max-w-sm overflow-hidden relative"
+          >
+            <button
+              onClick={() => setSelectedProduct(null)}
+              className="absolute top-4 right-4 p-2 bg-white/80 backdrop-blur-md rounded-full hover:bg-gray-100 text-gray-600 shadow-sm z-10"
+            >
+              <X size={18} />
+            </button>
+            
+            {selectedProduct.thumbnail && (
+              <img src={selectedProduct.thumbnail} className="w-full h-48 object-cover" alt="" />
+            )}
+            
+            <div className="p-6">
+              <div className="flex justify-between items-start gap-4">
+                <div>
+                  <h4 className="text-xl font-bold text-gray-900 leading-tight">{selectedProduct.name}</h4>
+                  <p className="text-[10px] font-mono text-gray-400 mt-1 uppercase tracking-wider">Product ID: {selectedProduct.productId || selectedProduct._id}</p>
+                </div>
+              </div>
+              
+              <div className="mt-6 flex items-center justify-between p-4 bg-gray-50 rounded-2xl border border-gray-100">
+                <div>
+                  <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Unit Price</p>
+                  <p className="text-2xl font-black text-gray-900 mt-1">৳{selectedProduct.price}</p>
+                </div>
+                <div className="text-right">
+                  <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Quantity</p>
+                  <p className="text-2xl font-black text-orange-500 mt-1">{selectedProduct.quantity}</p>
+                </div>
+              </div>
+              
+              <button 
+                onClick={() => setSelectedProduct(null)}
+                className="w-full mt-6 py-3.5 bg-gray-900 text-white rounded-2xl font-bold hover:bg-black transition-all shadow-lg shadow-gray-200"
+              >
+                Close Details
+              </button>
+            </div>
+          </motion.div>
+        </div>
+      )}
     </div>
   );
 }
+

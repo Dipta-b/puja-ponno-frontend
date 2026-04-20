@@ -5,7 +5,6 @@ import {
   Search,
   Filter,
   Calendar,
-  Download,
   CheckCircle,
   XCircle,
   AlertCircle,
@@ -17,8 +16,12 @@ import {
   User,
   MapPin,
   Clock,
-  ExternalLink
+  ExternalLink,
+  RefreshCw,
+  Trash2
 } from 'lucide-react';
+
+
 
 import toast from 'react-hot-toast';
 
@@ -90,8 +93,41 @@ export default function AdminPayments() {
 
   const copyToClipboard = (text) => {
     navigator.clipboard.writeText(text);
-    toast.success(" copied to clipboard!");
+    toast.success("Transaction ID copied!");
   };
+
+  const handleDeleteLog = async (id) => {
+    if (!window.confirm("Are you sure you want to delete this log?")) return;
+    try {
+      const res = await fetch(`${API}/admin/analytics/logs/payments/${id}`, {
+        method: 'DELETE',
+        credentials: "include"
+      });
+      if (res.ok) {
+        toast.success("Log deleted");
+        fetchLogs();
+      }
+    } catch (err) {
+      toast.error("Failed to delete");
+    }
+  };
+
+  const handleDeleteAll = async () => {
+    if (!window.confirm("⚠️ DANGER: Are you sure you want to delete ALL logs? This cannot be undone.")) return;
+    try {
+      const res = await fetch(`${API}/admin/analytics/logs/payments/all`, {
+        method: 'DELETE',
+        credentials: "include"
+      });
+      if (res.ok) {
+        toast.success("All logs cleared");
+        fetchLogs();
+      }
+    } catch (err) {
+      toast.error("Failed to clear logs");
+    }
+  };
+
 
 
   const filteredLogs = logs.filter(log =>
@@ -112,11 +148,19 @@ export default function AdminPayments() {
           <div className="flex gap-2">
             <button
               onClick={fetchLogs}
-              className="px-4 py-2 bg-white border border-gray-200 rounded-lg flex items-center gap-2 hover:bg-gray-50 transition-colors"
+              className="px-4 py-2 bg-white border border-gray-200 rounded-lg flex items-center gap-2 hover:bg-gray-50 transition-colors text-gray-700"
+              title="রিলেটেড ডাটা এবং নতুন পেমেন্ট চেক করতে রিফ্রেশ করুন"
             >
-              <Download size={18} /> রিফ্রেশ করুন
+              <RefreshCw size={18} className={loading ? 'animate-spin' : ''} /> রিফ্রেশ করুন
+            </button>
+            <button
+              onClick={handleDeleteAll}
+              className="px-4 py-2 bg-red-50 text-red-600 border border-red-100 rounded-lg flex items-center gap-2 hover:bg-red-100 transition-colors font-bold"
+            >
+              <Trash2 size={18} /> সব মুছে ফেলুন
             </button>
           </div>
+
         </div>
 
         {/* Stats Grid */}
@@ -190,23 +234,25 @@ export default function AdminPayments() {
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse">
               <thead>
-                <tr className="bg-gray-50 text-gray-600 text-sm">
-                  <th className="px-6 py-4 font-semibold uppercase tracking-wider">Customer</th>
-                  <th className="px-6 py-4 font-semibold uppercase tracking-wider">Phone</th>
-                  <th className="px-6 py-4 font-semibold uppercase tracking-wider">Transaction ID</th>
-                  <th className="px-6 py-4 font-semibold uppercase tracking-wider">Step</th>
-                  <th className="px-6 py-4 font-semibold uppercase tracking-wider text-right">Action</th>
-
+                <tr className="bg-gray-50 text-gray-600 text-[11px] font-bold uppercase tracking-wider">
+                  <th className="px-6 py-4">Customer</th>
+                  <th className="px-6 py-4">Phone</th>
+                  <th className="px-6 py-4">Transaction ID</th>
+                  <th className="px-6 py-4">Step</th>
+                  <th className="px-6 py-4">Event Data</th>
+                  <th className="px-6 py-4">Timestamp</th>
+                  <th className="px-6 py-4 text-right">Actions</th>
                 </tr>
+
               </thead>
               <tbody className="divide-y divide-gray-100">
                 {loading ? (
                   <tr>
-                    <td colSpan="5" className="px-6 py-12 text-center text-gray-500">Loading logs...</td>
+                    <td colSpan="7" className="px-6 py-12 text-center text-gray-500">Loading logs...</td>
                   </tr>
                 ) : filteredLogs.length === 0 ? (
                   <tr>
-                    <td colSpan="5" className="px-6 py-12 text-center text-gray-500">No logs found</td>
+                    <td colSpan="7" className="px-6 py-12 text-center text-gray-500">No logs found</td>
                   </tr>
                 ) : (
                   filteredLogs.map((log) => (
@@ -248,7 +294,7 @@ export default function AdminPayments() {
                       <td className="px-6 py-4 text-xs text-gray-400">
                         {new Date(log.timestamp).toLocaleString()}
                       </td>
-                      <td className="px-6 py-4 text-right">
+                      <td className="px-6 py-4 text-right flex justify-end gap-2">
                         <button
                           onClick={() => handleViewDetails(log)}
                           className="p-2 hover:bg-orange-50 text-orange-600 rounded-lg transition-all"
@@ -256,8 +302,15 @@ export default function AdminPayments() {
                         >
                           <Eye size={18} />
                         </button>
-
+                        <button
+                          onClick={() => handleDeleteLog(log._id)}
+                          className="p-2 hover:bg-red-50 text-red-400 hover:text-red-600 rounded-lg transition-all"
+                          title="Delete Log"
+                        >
+                          <Trash2 size={18} />
+                        </button>
                       </td>
+
                     </tr>
                   ))
                 )}

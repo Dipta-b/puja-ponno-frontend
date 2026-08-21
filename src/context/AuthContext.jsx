@@ -1,4 +1,5 @@
 import React, { createContext, useState, useEffect } from "react";
+import { API_BASE_URL } from "../config/api";
 
 export const AuthContext = createContext();
 
@@ -6,7 +7,7 @@ export default function AuthProvider({ children }) {
     const [user, setUser] = useState(null);
     const [loading, setLoading] = useState(true);
 
-    const API = "http://localhost:5000";
+    const API = API_BASE_URL;
 
     useEffect(() => {
         const fetchCurrentUser = async () => {

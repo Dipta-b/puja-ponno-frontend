@@ -1,6 +1,7 @@
 import React, { useContext, useState, useEffect, createContext } from "react";
 import { AuthContext } from "./AuthContext";
 import toast from "react-hot-toast";
+import { API_BASE_URL } from "../config/api";
 
 const CartContext = createContext();
 export const useCart = () => useContext(CartContext);
@@ -11,7 +12,7 @@ export const CartProvider = ({ children }) => {
     const [cartItems, setCartItems] = useState([]);
     const [loading, setLoading] = useState(true);
 
-    const API = "http://localhost:5000";
+    const API = API_BASE_URL;
 
     // ✅ LOAD CART BY EMAIL (IMPORTANT FIX)
     useEffect(() => {

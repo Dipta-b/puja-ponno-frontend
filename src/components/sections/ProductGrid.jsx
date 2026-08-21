@@ -4,8 +4,9 @@ import { ShoppingCart, Info, X, CheckCircle2 } from 'lucide-react';
 
 import { useNavigate } from 'react-router-dom';
 import { useCart } from '../../context/CartContext';
+import { API_BASE_URL } from '../../config/api';
 
-const API = 'http://localhost:5000';
+const API = API_BASE_URL;
 
 const predefinedCategories = [
     { _id: "pre-1", name: "Puja Packages", nameBn: "পূজা প্যাকেজ", slug: "puja-packages" },

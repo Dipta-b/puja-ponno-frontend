@@ -4,8 +4,9 @@ import { motion } from 'framer-motion';
 import { ShoppingCart, Search, ArrowLeft, Info, X, CheckCircle2 } from 'lucide-react';
 
 import { useCart } from '../context/CartContext';
+import { API_BASE_URL } from '../config/api';
 
-const API = 'http://localhost:5000';
+const API = API_BASE_URL;
 
 export default function CategoryPage() {
     const { slug } = useParams();

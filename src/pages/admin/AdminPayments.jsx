@@ -24,6 +24,7 @@ import {
 
 
 import toast from 'react-hot-toast';
+import { API_BASE_URL } from '../../config/api';
 
 export default function AdminPayments() {
   const [logs, setLogs] = useState([]);
@@ -40,7 +41,7 @@ export default function AdminPayments() {
   const [showRawJson, setShowRawJson] = useState(false);
 
 
-  const API = "http://localhost:5000";
+  const API = API_BASE_URL;
 
   useEffect(() => {
     fetchStats();

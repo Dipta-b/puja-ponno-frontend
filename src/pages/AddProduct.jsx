@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
+import { API_BASE_URL } from "../config/api";
 
 const AddProduct = () => {
     const { register, handleSubmit, setValue, watch } = useForm();
@@ -20,7 +21,7 @@ const AddProduct = () => {
     const [uploading, setUploading] = useState(false);
     const [message, setMessage] = useState("");
 
-    const API = "http://localhost:5000";
+    const API = API_BASE_URL;
 
     // Load categories
     useEffect(() => {

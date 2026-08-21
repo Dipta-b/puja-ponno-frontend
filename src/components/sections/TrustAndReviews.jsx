@@ -2,8 +2,9 @@ import React, { useState, useEffect, useContext } from 'react';
 import { motion } from 'framer-motion';
 import { Play, Star, Edit, Trash2 } from 'lucide-react';
 import { AuthContext } from '../../context/AuthContext';
+import { API_BASE_URL } from '../../config/api';
 
-const API = 'http://localhost:5000';
+const API = API_BASE_URL;
 
 export default function TrustAndReviews() {
   const { user } = useContext(AuthContext);

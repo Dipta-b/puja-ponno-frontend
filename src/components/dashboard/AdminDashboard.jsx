@@ -6,8 +6,9 @@ import {
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { AuthContext } from '../../context/AuthContext';
+import { API_BASE_URL } from '../../config/api';
 
-const API = 'http://localhost:5000';
+const API = API_BASE_URL;
 
 const AdminDashboard = () => {
     const [activeTab, setActiveTab] = useState('products');

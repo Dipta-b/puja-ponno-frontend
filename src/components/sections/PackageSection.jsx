@@ -2,9 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { CheckCircle2, ShoppingBag, ShoppingCart, Info, X } from 'lucide-react';
 import { useCart } from '../../context/CartContext';
+import { API_BASE_URL } from '../../config/api';
 
-
-const API = 'http://localhost:5000';
+const API = API_BASE_URL;
 
 export default function PackageSection() {
   const [packages, setPackages] = useState([]);

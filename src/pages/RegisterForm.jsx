@@ -4,6 +4,7 @@ import { Dialog, Transition } from "@headlessui/react";
 import { AiFillEye, AiFillEyeInvisible } from "react-icons/ai";
 import { Link, useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
+import { API_BASE_URL } from "../config/api";
 
 function RegisterForm() {
   const {
@@ -20,7 +21,7 @@ function RegisterForm() {
 
   const onSubmit = async (data) => {
     try {
-      const res = await fetch("http://localhost:5000/api/auth/register", {
+      const res = await fetch(`${API_BASE_URL}/api/auth/register`, {
         method: "POST",
         credentials: "include",
         headers: {

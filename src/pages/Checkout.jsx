@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { CreditCard, Truck, Wallet, CheckCircle } from 'lucide-react';
 import { useCart } from '../context/CartContext';
+import { API_BASE_URL } from '../config/api';
 
 export default function Checkout() {
 
@@ -38,7 +39,7 @@ export default function Checkout() {
         return alert("Please fill all fields");
       }
 
-      const res = await fetch("http://localhost:5000/payment/create-payment", {
+      const res = await fetch(`${API_BASE_URL}/payment/create-payment`, {
         method: "POST",
         credentials: "include",
         headers: {

@@ -13,6 +13,8 @@ export default function Navbar() {
   const navigate = useNavigate();
   const { user, setUser } = useContext(AuthContext);
 
+  const navLinks = ["পূজার সামগ্রী", "প্যাকেজ", "শুদ্ধতার গল্প"];
+
   const handleNavClick = (e, item) => {
     e.preventDefault();
     setIsMobileMenuOpen(false);

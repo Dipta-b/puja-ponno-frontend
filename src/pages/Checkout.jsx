@@ -1,20 +1,28 @@
-import React, { useState } from 'react';
+import React, { useState, useContext, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { CreditCard, Truck, Wallet, CheckCircle } from 'lucide-react';
 import { useCart } from '../context/CartContext';
+import { AuthContext } from '../context/AuthContext';
 import { API_BASE_URL } from '../config/api';
 
 export default function Checkout() {
 
   const { cartItems, clearCart } = useCart();
+  const { user } = useContext(AuthContext) || {};
 
   const [deliveryArea, setDeliveryArea] = useState('inside');
   const [paymentMethod, setPaymentMethod] = useState('bkash');
 
   // 🧾 USER INPUT STATES (IMPORTANT)
-  const [name, setName] = useState("");
+  const [name, setName] = useState(user?.name || "");
+  const [email, setEmail] = useState(user?.email || "");
   const [phone, setPhone] = useState("");
   const [address, setAddress] = useState("");
+
+  useEffect(() => {
+    if (user?.name && !name) setName(user.name);
+    if (user?.email && !email) setEmail(user.email);
+  }, [user]);
 
   const deliveryCharge = deliveryArea === 'inside' ? 60 : 120;
 
@@ -35,8 +43,8 @@ export default function Checkout() {
         return alert("Cart is empty");
       }
 
-      if (!name || !phone || !address) {
-        return alert("Please fill all fields");
+      if (!name || !phone || !address || !email) {
+        return alert("Please fill all fields (Name, Email, Phone, Address)");
       }
 
       const res = await fetch(`${API_BASE_URL}/payment/create-payment`, {
@@ -47,6 +55,8 @@ export default function Checkout() {
         },
         body: JSON.stringify({
           items: cartItems,
+          name,
+          email,
           phone,
           address,
           deliveryArea
@@ -59,7 +69,7 @@ export default function Checkout() {
         // 🔥 redirect to SSLCommerz
         window.location.href = data.gatewayUrl;
       } else {
-        alert("Payment init failed");
+        alert(data.error || "Payment init failed");
       }
 
     } catch (err) {
@@ -88,22 +98,40 @@ export default function Checkout() {
               <input
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                placeholder="আপনার নাম"
+                placeholder="আপনার নাম *"
+                className="p-3 border rounded-xl"
+              />
+
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="ইমেইল ঠিকানা *"
                 className="p-3 border rounded-xl"
               />
 
               <input
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
-                placeholder="মোবাইল নাম্বার"
+                placeholder="মোবাইল নাম্বার *"
                 className="p-3 border rounded-xl"
               />
+
+              <select
+                value={deliveryArea}
+                onChange={(e) => setDeliveryArea(e.target.value)}
+                className="p-3 border rounded-xl bg-white"
+              >
+                <option value="inside">ঢাকার ভেতরে (৳৬০)</option>
+                <option value="outside">ঢাকার বাইরে (৳১২০)</option>
+              </select>
+
             </div>
 
             <textarea
               value={address}
               onChange={(e) => setAddress(e.target.value)}
-              placeholder="ঠিকানা"
+              placeholder="ঠিকানা (বিস্তারিত) *"
               className="w-full mt-3 p-3 border rounded-xl"
               rows={3}
             />

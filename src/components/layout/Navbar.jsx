@@ -13,7 +13,27 @@ export default function Navbar() {
   const navigate = useNavigate();
   const { user, setUser } = useContext(AuthContext);
 
-  const navLinks = ["পূজার সামগ্রী", "প্যাকেজ", "শুদ্ধতার গল্প"];
+  const handleNavClick = (e, item) => {
+    e.preventDefault();
+    setIsMobileMenuOpen(false);
+
+    if (window.location.pathname !== "/") {
+      navigate(`/#${item}`);
+      setTimeout(() => {
+        const element = document.getElementById(item);
+        if (element) {
+          element.scrollIntoView({ behavior: "smooth" });
+        }
+      }, 150);
+    } else {
+      const element = document.getElementById(item);
+      if (element) {
+        element.scrollIntoView({ behavior: "smooth" });
+      } else {
+        window.location.hash = item;
+      }
+    }
+  };
 
   const confirmLogout = async () => {
     try {
@@ -69,8 +89,9 @@ export default function Navbar() {
             {navLinks.map((item) => (
               <a
                 key={item}
-                href={`#${item}`}
-                className="text-gray-700 hover:text-orange-500"
+                href={`/#${item}`}
+                onClick={(e) => handleNavClick(e, item)}
+                className="text-gray-700 hover:text-orange-500 cursor-pointer"
               >
                 {item}
               </a>
@@ -128,9 +149,9 @@ export default function Navbar() {
                 {navLinks.map((item) => (
                   <a
                     key={item}
-                    href={`#${item}`}
-                    onClick={() => setIsMobileMenuOpen(false)}
-                    className="text-lg text-gray-800"
+                    href={`/#${item}`}
+                    onClick={(e) => handleNavClick(e, item)}
+                    className="text-lg text-gray-800 cursor-pointer"
                   >
                     {item}
                   </a>

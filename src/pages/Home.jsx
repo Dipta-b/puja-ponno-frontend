@@ -14,6 +14,16 @@ export default function Home() {
   const navigate = useNavigate();
 
   useEffect(() => {
+    if (window.location.hash) {
+      const id = decodeURIComponent(window.location.hash.substring(1));
+      setTimeout(() => {
+        const element = document.getElementById(id);
+        if (element) {
+          element.scrollIntoView({ behavior: 'smooth' });
+        }
+      }, 200);
+    }
+
     // Check for payment status in URL query parameters securely
     const params = new URLSearchParams(window.location.search);
     const paymentStatus = params.get('payment');

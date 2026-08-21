@@ -1,20 +1,5 @@
 {
   "rewrites": [
-    { "source": "/api/:path*", "destination": "https://puja-ponno-backend.vercel.app/api/:path*" },
-    { "source": "/products/:path*", "destination": "https://puja-ponno-backend.vercel.app/products/:path*" },
-    { "source": "/products", "destination": "https://puja-ponno-backend.vercel.app/products" },
-    { "source": "/categories/:path*", "destination": "https://puja-ponno-backend.vercel.app/categories/:path*" },
-    { "source": "/categories", "destination": "https://puja-ponno-backend.vercel.app/categories" },
-    { "source": "/comments/:path*", "destination": "https://puja-ponno-backend.vercel.app/comments/:path*" },
-    { "source": "/comments", "destination": "https://puja-ponno-backend.vercel.app/comments" },
-    { "source": "/cart/:path*", "destination": "https://puja-ponno-backend.vercel.app/cart/:path*" },
-    { "source": "/cart", "destination": "https://puja-ponno-backend.vercel.app/cart" },
-    { "source": "/payment/:path*", "destination": "https://puja-ponno-backend.vercel.app/payment/:path*" },
-    { "source": "/payment", "destination": "https://puja-ponno-backend.vercel.app/payment" },
-    { "source": "/orders/:path*", "destination": "https://puja-ponno-backend.vercel.app/orders/:path*" },
-    { "source": "/orders", "destination": "https://puja-ponno-backend.vercel.app/orders" },
-    { "source": "/admin/:path*", "destination": "https://puja-ponno-backend.vercel.app/admin/:path*" },
-    { "source": "/admin", "destination": "https://puja-ponno-backend.vercel.app/admin" },
     { "source": "/(.*)", "destination": "/index.html" }
   ]
 }

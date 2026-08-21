@@ -3,7 +3,10 @@ import { motion, AnimatePresence } from "framer-motion";
 import { ShoppingBag, Menu, X, UserCircle } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { AuthContext } from "../../context/AuthContext";
+import { useCart } from "../../context/CartContext";
 import { API_BASE_URL } from "../../config/api";
+
+const NAV_LINKS = ["পূজার সামগ্রী", "প্যাকেজ", "শুদ্ধতার গল্প"];
 
 export default function Navbar() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -12,11 +15,15 @@ export default function Navbar() {
 
   const navigate = useNavigate();
   const { user, setUser } = useContext(AuthContext);
+  const { cartItems } = useCart();
 
-  const navLinks = ["পূজার সামগ্রী", "প্যাকেজ", "শুদ্ধতার গল্প"];
+  const navLinks = NAV_LINKS;
+  const cartCount = (cartItems || []).reduce((acc, item) => acc + (item.quantity || 1), 0);
 
   const handleNavClick = (e, item) => {
-    e.preventDefault();
+    if (e && e.preventDefault) {
+      e.preventDefault();
+    }
     setIsMobileMenuOpen(false);
 
     if (window.location.pathname !== "/") {
@@ -89,14 +96,14 @@ export default function Navbar() {
           {/* DESKTOP NAV */}
           <nav className="hidden md:flex items-center space-x-8">
             {navLinks.map((item) => (
-              <a
+              <button
                 key={item}
-                href={`/#${item}`}
+                type="button"
                 onClick={(e) => handleNavClick(e, item)}
-                className="text-gray-700 hover:text-orange-500 cursor-pointer"
+                className="text-gray-700 hover:text-orange-500 cursor-pointer font-bengali bg-transparent border-none p-0 text-base"
               >
                 {item}
-              </a>
+              </button>
             ))}
           </nav>
 
@@ -122,9 +129,11 @@ export default function Navbar() {
 
             <Link to="/cart" className="relative">
               <ShoppingBag size={24} />
-              <span className="absolute -top-2 -right-2 bg-orange-500 text-white text-xs rounded-full px-1">
-                2
-              </span>
+              {cartCount > 0 && (
+                <span className="absolute -top-2 -right-2 bg-orange-500 text-white text-xs rounded-full px-1.5 py-0.5">
+                  {cartCount}
+                </span>
+              )}
             </Link>
 
             {user?.role === "admin" && (
@@ -149,14 +158,14 @@ export default function Navbar() {
             >
               <div className="flex flex-col px-6 py-6 gap-6">
                 {navLinks.map((item) => (
-                  <a
+                  <button
                     key={item}
-                    href={`/#${item}`}
+                    type="button"
                     onClick={(e) => handleNavClick(e, item)}
-                    className="text-lg text-gray-800 cursor-pointer"
+                    className="text-lg text-gray-800 cursor-pointer text-left font-bengali bg-transparent border-none p-0"
                   >
                     {item}
-                  </a>
+                  </button>
                 ))}
 
                 {user?.role === "admin" && (

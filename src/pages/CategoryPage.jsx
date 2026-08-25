@@ -43,6 +43,9 @@ export default function CategoryPage() {
                 const allCats = [...predefinedCategories, ...uniqueFetched];
 
                 setCategories(allCats);
+            })
+            .catch(err => {
+                console.warn("CategoryPage categories error:", err.message);
             });
 
         fetch(`${API}/products`)
@@ -58,6 +61,9 @@ export default function CategoryPage() {
                         setCategoryName(slug);
                     }
                 }
+            })
+            .catch(err => {
+                console.warn("CategoryPage products error:", err.message);
             });
 
     }, [slug]);

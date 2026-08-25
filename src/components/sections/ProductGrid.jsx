@@ -57,12 +57,19 @@ export default function ProductGrid() {
                         allCats[0].slug || allCats[0].name.toLowerCase().replace(/ /g, '-')
                     );
                 }
+            })
+            .catch(err => {
+                console.warn("Categories fetch warning:", err.message);
+                setCategories(predefinedCategories);
             });
 
         fetch(`${API}/products`)
             .then(res => res.json())
             .then(data => {
                 if (Array.isArray(data)) setProducts(data);
+            })
+            .catch(err => {
+                console.warn("Products fetch warning:", err.message);
             });
     }, []);
 

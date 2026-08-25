@@ -8,6 +8,7 @@ import Cart from './pages/Cart';
 import Checkout from './pages/Checkout';
 import RegisterForm from './pages/RegisterForm';
 import LoginForm from './pages/LoginForm';
+import ForgotPassword from './pages/ForgotPassword';
 import AdminRoute from './secureRoutes/AdminRoute';
 import AdminDashboard from './components/dashboard/AdminDashboard';
 import AddProduct from './pages/AddProduct';
@@ -31,6 +32,8 @@ function App() {
             <Route path="/checkout" element={<Checkout />} />
             <Route path='/register' element={<RegisterForm />} />
             <Route path='/login' element={<LoginForm />} />
+            <Route path='/forgot-password' element={<ForgotPassword />} />
+            <Route path='/reset-password' element={<ForgotPassword />} />
             <Route path='/category/:slug' element={<CategoryPage />} />
             <Route path='/dashboard' element={<Navigate to="/admin" replace />} />
 

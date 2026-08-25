@@ -120,6 +120,15 @@ function LoginForm() {
                     {errors.password && (
                         <p className="text-red-500 text-sm">{errors.password.message}</p>
                     )}
+
+                    <div className="flex justify-end mt-1.5">
+                        <Link
+                            to="/forgot-password"
+                            className="text-xs text-yellow-700 hover:text-yellow-900 font-medium hover:underline transition-colors"
+                        >
+                            পাসওয়ার্ড ভুলে গেছেন?
+                        </Link>
+                    </div>
                 </div>
 
                 {/* BUTTON */}

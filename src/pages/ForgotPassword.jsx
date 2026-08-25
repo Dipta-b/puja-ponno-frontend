@@ -72,7 +72,16 @@ function ForgotPassword() {
         return;
       }
 
-      toast.success(data.message || "আপনার ইমেইলে OTP পাঠানো হয়েছে");
+      if (data.demoOtp) {
+        toast.success(`OTP তৈরি হয়েছে: ${data.demoOtp}`, { duration: 10000 });
+        const otpDigits = String(data.demoOtp).split("");
+        if (otpDigits.length === 6) {
+          setOtp(otpDigits);
+        }
+      } else {
+        toast.success(data.message || "আপনার ইমেইলে OTP পাঠানো হয়েছে");
+      }
+
       setStep(2);
       setCooldown(60); // 60 seconds cooldown for resend
     } catch (err) {
@@ -104,8 +113,16 @@ function ForgotPassword() {
         return;
       }
 
-      toast.success("নতুন OTP আপনার ইমেইলে পাঠানো হয়েছে");
-      setOtp(["", "", "", "", "", ""]);
+      if (data.demoOtp) {
+        toast.success(`নতুন OTP: ${data.demoOtp}`, { duration: 10000 });
+        const otpDigits = String(data.demoOtp).split("");
+        if (otpDigits.length === 6) {
+          setOtp(otpDigits);
+        }
+      } else {
+        toast.success("নতুন OTP আপনার ইমেইলে পাঠানো হয়েছে");
+      }
+
       setCooldown(60);
       if (otpInputRefs.current[0]) {
         otpInputRefs.current[0].focus();
